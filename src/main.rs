@@ -1,9 +1,43 @@
-use std::fs::read_to_string;
+use std::process::exit;
+
+use chrono::{Datelike, DateTime, Local};
+use clap::Parser;
+
+use crate::days::run;
+
+mod days;
+
+#[derive(Debug, Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[clap(group = "days-to-run")]
+    #[arg(long)]
+    day: Option<u8>,
+    #[clap(group = "days-to-run")]
+    #[arg(long)]
+    run_all: bool,
+}
 
 fn main() {
-    let input = read_to_string("input/day01.txt").unwrap();
-    let mut snacks: Vec<i32> = input.split("\n\n").map(|elve| elve.lines().map(|line| line.parse::<i32>().unwrap()).sum()).collect();
-    snacks.sort();
-    let x: i32 = snacks.iter().rev().take(3).sum();
-    println!("{}", x);
+    let cli = Cli::parse();
+    println!("{:?}", cli);
+
+    let days: Vec<u8> = if let Some(day) = cli.day {
+        vec![day]
+    } else if cli.run_all {
+        todo!()
+    } else {
+        let local: DateTime<Local> = Local::now();
+        if local.month() != 12 {
+            println!("Running the current day only works in december");
+            exit(-1)
+        }
+        let day = local.day();
+        if day > 25 {
+            println!("AoC is done. If you want to run a specific day, you have to say so");
+            exit(-1)
+        }
+        vec![day as u8]
+    };
+    run(days);
 }
