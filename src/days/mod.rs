@@ -11,7 +11,10 @@ pub fn run(days_to_run: Vec<u8>) {
         .into_iter()
         .map(|day| {
             let fun = match day {
-                0 => panic!("0 day is an exploit, not the day of a month!"),
+                0 => {
+                    eprintln!("0 day is an exploit, not the day of a month!");
+                    exit(-1)
+                }
                 1..=25 => ALL.iter().find(|(d, _)| *d == day).unwrap_or_else(|| {
                     eprintln!("Error: day {day} is not yet implemented");
                     exit(-1)

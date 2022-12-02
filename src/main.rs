@@ -30,12 +30,12 @@ fn main() {
     } else {
         let local: DateTime<Local> = Local::now();
         if local.month() != 12 {
-            println!("Running the current day only works in december");
+            println!("Running the current day only works in december (try --help)");
             exit(-1)
         }
         let day = local.day();
         if day > 25 {
-            println!("AoC is done. If you want to run a specific day, you have to say so");
+            println!("AoC is done. If you want to run a specific day, you have to say so (try --help)");
             exit(-1)
         }
         vec![day as u8]
