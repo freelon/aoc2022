@@ -3,7 +3,7 @@ use std::process::exit;
 use chrono::{Datelike, DateTime, Local};
 use clap::Parser;
 
-use crate::days::run;
+use crate::days::{ALL, run};
 
 mod days;
 
@@ -20,12 +20,13 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
-    println!("{:?}", cli);
 
     let days: Vec<u8> = if let Some(day) = cli.day {
         vec![day]
     } else if cli.run_all {
-        todo!()
+        let mut all_days: Vec<u8> = ALL.iter().map(|(d, _)| *d).collect();
+        all_days.sort();
+        all_days
     } else {
         let local: DateTime<Local> = Local::now();
         if local.month() != 12 {

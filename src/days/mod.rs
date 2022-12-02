@@ -4,16 +4,20 @@ use std::process::exit;
 mod day01;
 mod day02;
 
+pub const ALL: [(u8, fn(String) -> Box<dyn Day>); 2] = [(1, day01::create), (2, day02::create)];
+
 pub fn run(days_to_run: Vec<u8>) {
     let tasks: Vec<(u8, Box<dyn Day>)> = days_to_run
         .into_iter()
         .map(|day| {
             let fun = match day {
                 0 => panic!("0 day is an exploit, not the day of a month!"),
-                1 => day01::create,
-                2 => day02::create,
-                _ => {
+                1..=25 => ALL.iter().find(|(d, _)| *d == day).unwrap_or_else(|| {
                     eprintln!("Error: day {day} is not yet implemented");
+                    exit(-1)
+                }).1,
+                _ => {
+                    eprintln!("Day {day}? You already missed christmas! :o");
                     exit(-1)
                 }
             };
