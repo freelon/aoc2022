@@ -2,6 +2,7 @@ use std::fs::read_to_string;
 use std::process::exit;
 
 mod day01;
+mod day02;
 
 pub fn run(days_to_run: Vec<u8>) {
     let tasks: Vec<(u8, Box<dyn Day>)> = days_to_run
@@ -10,6 +11,7 @@ pub fn run(days_to_run: Vec<u8>) {
             let fun = match day {
                 0 => panic!("0 day is an exploit, not the day of a month!"),
                 1 => day01::create,
+                2 => day02::create,
                 _ => {
                     eprintln!("Error: day {day} is not yet implemented");
                     exit(-1)
