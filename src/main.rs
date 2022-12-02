@@ -35,7 +35,9 @@ fn main() {
         }
         let day = local.day();
         if day > 25 {
-            println!("AoC is done. If you want to run a specific day, you have to say so (try --help)");
+            println!(
+                "AoC is done. If you want to run a specific day, you have to say so (try --help)"
+            );
             exit(-1)
         }
         vec![day as u8]

@@ -15,10 +15,15 @@ pub fn run(days_to_run: Vec<u8>) {
                     eprintln!("0 day is an exploit, not the day of a month!");
                     exit(-1)
                 }
-                1..=25 => ALL.iter().find(|(d, _)| *d == day).unwrap_or_else(|| {
-                    eprintln!("Error: day {day} is not yet implemented");
-                    exit(-1)
-                }).1,
+                1..=25 => {
+                    ALL.iter()
+                        .find(|(d, _)| *d == day)
+                        .unwrap_or_else(|| {
+                            eprintln!("Error: day {day} is not yet implemented");
+                            exit(-1)
+                        })
+                        .1
+                }
                 _ => {
                     eprintln!("Day {day}? You already missed christmas! :o");
                     exit(-1)
