@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use itertools::Itertools;
+
 use crate::days::Day;
 
 pub fn create(input: String) -> Box<dyn Day> {
@@ -26,7 +28,21 @@ impl Day for Day03 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let sum_of_triplet_priorities: u32 = self.input.lines()
+            .chunks(3)
+            .into_iter()
+            .map(|x| {
+                let (a, b, c) = x.into_iter().next_tuple().unwrap();
+                let a: HashSet<char> = HashSet::from_iter(a.chars());
+                let b: HashSet<char> = HashSet::from_iter(b.chars());
+                let c: HashSet<char> = HashSet::from_iter(c.chars());
+                let ab: HashSet<char> = a.intersection(&b).map(|c| *c).collect();
+                let abc: HashSet<char> = ab.intersection(&c).map(|c| *c).collect();
+                assert_eq!(abc.len(), 1, "wtf");
+                priority(abc.iter().next().unwrap())
+            })
+            .sum();
+        format!("{sum_of_triplet_priorities}")
     }
 }
 
