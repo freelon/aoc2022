@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use itertools::Itertools;
 
 use crate::days::Day;
@@ -19,9 +17,10 @@ impl Day for Day03 {
             .lines()
             .map(|line| {
                 let (left, right) = line.split_at(line.len() / 2);
-                let left: HashSet<char> = HashSet::from_iter(left.chars());
-                let right: HashSet<char> = HashSet::from_iter(right.chars());
-                let type_in_both = left.intersection(&right).next().unwrap();
+                let type_in_both = left
+                    .chars()
+                    .find(|c| right.contains(&c.to_string()))
+                    .unwrap();
                 priority(type_in_both)
             })
             .sum();
@@ -37,23 +36,22 @@ impl Day for Day03 {
             .into_iter()
             .map(|x| {
                 let (a, b, c) = x.into_iter().next_tuple().unwrap();
-                let a: HashSet<char> = HashSet::from_iter(a.chars());
-                let b: HashSet<char> = HashSet::from_iter(b.chars());
-                let c: HashSet<char> = HashSet::from_iter(c.chars());
-                let ab: HashSet<char> = a.intersection(&b).map(|c| *c).collect();
-                let abc: HashSet<char> = ab.intersection(&c).map(|c| *c).collect();
-                assert_eq!(abc.len(), 1, "wtf");
-                priority(abc.iter().next().unwrap())
+                let in_all = a
+                    .chars()
+                    .filter(|x| b.contains(&x.to_string()))
+                    .find(|x| c.contains(&x.to_string()))
+                    .unwrap();
+                priority(in_all)
             })
             .sum();
         format!("{sum_of_triplet_priorities}")
     }
 }
 
-fn priority(c: &char) -> u32 {
+fn priority(c: char) -> u32 {
     if c.is_ascii_lowercase() {
-        1 + *c as u32 - 'a' as u32
+        1 + c as u32 - 'a' as u32
     } else {
-        27 + *c as u32 - 'A' as u32
+        27 + c as u32 - 'A' as u32
     }
 }
