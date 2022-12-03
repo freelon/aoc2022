@@ -14,7 +14,9 @@ struct Day03 {
 
 impl Day for Day03 {
     fn part1(&self) -> String {
-        let sum_of_priorities: u32 = self.input.lines()
+        let sum_of_priorities: u32 = self
+            .input
+            .lines()
             .map(|line| {
                 let (left, right) = line.split_at(line.len() / 2);
                 let left: HashSet<char> = HashSet::from_iter(left.chars());
@@ -28,7 +30,9 @@ impl Day for Day03 {
     }
 
     fn part2(&self) -> String {
-        let sum_of_triplet_priorities: u32 = self.input.lines()
+        let sum_of_triplet_priorities: u32 = self
+            .input
+            .lines()
             .chunks(3)
             .into_iter()
             .map(|x| {

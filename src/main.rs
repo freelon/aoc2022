@@ -16,6 +16,8 @@ struct Cli {
     #[clap(group = "days-to-run")]
     #[arg(long)]
     run_all: bool,
+    #[arg(long)]
+    time: bool,
 }
 
 fn main() {
@@ -42,5 +44,5 @@ fn main() {
         }
         vec![day as u8]
     };
-    run(days);
+    run(days, cli.time);
 }
