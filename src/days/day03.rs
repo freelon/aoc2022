@@ -17,10 +17,7 @@ impl Day for Day03 {
             .lines()
             .map(|line| {
                 let (left, right) = line.split_at(line.len() / 2);
-                let type_in_both = left
-                    .chars()
-                    .find(|c| right.contains(&c.to_string()))
-                    .unwrap();
+                let type_in_both = left.chars().find(|c| right.contains(*c)).unwrap();
                 priority(type_in_both)
             })
             .sum();
@@ -38,8 +35,8 @@ impl Day for Day03 {
                 let (a, b, c) = x.into_iter().next_tuple().unwrap();
                 let in_all = a
                     .chars()
-                    .filter(|x| b.contains(&x.to_string()))
-                    .find(|x| c.contains(&x.to_string()))
+                    .filter(|x| b.contains(*x))
+                    .find(|x| c.contains(*x))
                     .unwrap();
                 priority(in_all)
             })
