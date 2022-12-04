@@ -12,29 +12,27 @@ struct Day04 {
 
 impl Day for Day04 {
     fn part1(&self) -> String {
-        let fully_contained = self
-            .input
-            .lines()
-            .map(|line| {
-                let (left, right) = line.split_once(",").unwrap();
-                (to_range(left), to_range(right))
-            })
-            .filter(|(a, b)| fully_contains(a, b) || fully_contains(b, a))
-            .count();
+        let fully_contained = self.count_filtered_pairs(|(a, b)| fully_contains(a, b) || fully_contains(b, a));
         format!("{fully_contained}")
     }
 
     fn part2(&self) -> String {
-        let partial_contained = self
+        let partial_contained = self.count_filtered_pairs(|(a, b)| partially_contains(a, b) || partially_contains(b, a));
+        format!("{partial_contained}")
+    }
+}
+
+impl Day04 {
+    fn count_filtered_pairs(&self, filter: for<'r> fn(&'r (RangeInclusive<u32>, RangeInclusive<u32>)) -> bool) -> usize {
+        self
             .input
             .lines()
             .map(|line| {
                 let (left, right) = line.split_once(",").unwrap();
                 (to_range(left), to_range(right))
             })
-            .filter(|(a, b)| partially_contains(a, b) || partially_contains(b, a))
-            .count();
-        format!("{partial_contained}")
+            .filter(filter)
+            .count()
     }
 }
 
