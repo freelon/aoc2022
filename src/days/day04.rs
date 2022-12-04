@@ -25,7 +25,16 @@ impl Day for Day04 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let partial_contained = self
+            .input
+            .lines()
+            .map(|line| {
+                let (left, right) = line.split_once(",").unwrap();
+                (to_range(left), to_range(right))
+            })
+            .filter(|(a, b)| partially_contains(a, b) || partially_contains(b, a))
+            .count();
+        format!("{partial_contained}")
     }
 }
 
@@ -37,4 +46,8 @@ fn to_range(s: &str) -> RangeInclusive<u32> {
 
 fn fully_contains(a: &RangeInclusive<u32>, b: &RangeInclusive<u32>) -> bool {
     a.contains(b.start()) && a.contains(b.end())
+}
+
+fn partially_contains(a: &RangeInclusive<u32>, b: &RangeInclusive<u32>) -> bool {
+    a.contains(b.start()) || a.contains(b.end())
 }
