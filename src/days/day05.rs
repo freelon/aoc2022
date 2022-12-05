@@ -1,5 +1,3 @@
-#![feature(slice_take)]
-
 use crate::days::Day;
 
 pub fn create(input: String) -> Box<dyn Day> {
