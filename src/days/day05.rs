@@ -13,9 +13,19 @@ struct DayXX {
 impl Day for DayXX {
     fn part1(&self) -> String {
         let (start, moves) = self.input.split_once("\n\n").unwrap();
-        let stacks = Self::initial_stacks(start);
+        let mut stacks = Self::initial_stacks(start);
 
-        format!("")
+        for command in moves.lines() {
+            let parts: Vec<&str> = command.split(" ").collect();
+            let (times, from, to): (usize, usize, usize) = (parts[1].parse().unwrap(), parts[3].parse().unwrap(), parts[5].parse().unwrap());
+            for _ in 0..times {
+                let cargo = stacks[from - 1].pop().unwrap();
+                stacks[to - 1].push(cargo);
+            }
+        }
+
+        let result: String = stacks.iter().map(|stack| stack.last().unwrap()).collect();
+        format!("{result}")
     }
 
     fn part2(&self) -> String {
