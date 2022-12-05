@@ -6,12 +6,14 @@ mod day01;
 mod day02;
 mod day03;
 mod day04;
+mod day05;
 
-pub const ALL: [(u8, fn(String) -> Box<dyn Day>); 4] = [
+pub const ALL: [(u8, fn(String) -> Box<dyn Day>); 5] = [
     (1, day01::create),
     (2, day02::create),
     (3, day03::create),
     (4, day04::create),
+    (5, day05::create),
 ];
 
 pub fn run(days_to_run: Vec<u8>, collect_timing: bool) {
