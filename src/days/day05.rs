@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use crate::days::Day;
 
 pub fn create(input: String) -> Box<dyn Day> {
@@ -29,7 +27,25 @@ impl Day for DayXX {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let (start, moves) = self.input.split_once("\n\n").unwrap();
+        let mut stacks = Self::initial_stacks(start);
+
+        for command in moves.lines() {
+            let parts: Vec<&str> = command.split(" ").collect();
+            let (times, from, to): (usize, usize, usize) = (parts[1].parse().unwrap(), parts[3].parse().unwrap(), parts[5].parse().unwrap());
+
+            let mut temp = Vec::new();
+            for _ in 0..times {
+                let cargo = stacks[from - 1].pop().unwrap();
+                temp.push(cargo);
+            }
+            for cargo in temp.into_iter().rev() {
+                stacks[to - 1].push(cargo);
+            }
+        }
+
+        let result: String = stacks.iter().map(|stack| stack.last().unwrap()).collect();
+        format!("{result}")
     }
 }
 
