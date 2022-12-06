@@ -1,5 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 
+use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 
 use crate::days::Day;
@@ -14,31 +15,34 @@ struct Day06 {
 
 impl Day for Day06 {
     fn part1(&self) -> String {
-        let foo = self
-            .input
-            .chars()
-            .tuple_windows::<(char, char, char, char)>()
-            .enumerate()
-            .find(|(index, chars)| {
-                let mut set = HashSet::new();
-                set.insert(chars.0);
-                set.insert(chars.1);
-                set.insert(chars.2);
-                set.insert(chars.3);
-                set.len() == 4
-            })
-            .unwrap();
-        format!("{}", foo.0 + 4)
+        let foo = self.consumed_until_different(4);
+        format!("{}", foo)
     }
 
     fn part2(&self) -> String {
-        let first_message = (0..self.input.len() - 14)
-            .find(|&start| {
-                let part = &self.input[start..start + 14];
-                let set: HashSet<_> = part.chars().collect();
-                set.len() == 14
+        let bar = self.consumed_until_different(14);
+        format!("{}", bar)
+    }
+}
+
+impl Day06 {
+    fn consumed_until_different(&self, size: usize) -> usize {
+        let slice: VecDeque<char> = self.input.chars().take(size).collect();
+        let foo = self
+            .input
+            .chars()
+            .skip(size)
+            .fold_while((size, slice), |(consumed, mut slice), next| {
+                let set: HashSet<_> = slice.iter().collect();
+                if set.len() < size {
+                    slice.pop_front();
+                    slice.push_back(next);
+                    Continue((consumed + 1, slice))
+                } else {
+                    Done((consumed, slice))
+                }
             })
-            .unwrap();
-        format!("{}", first_message + 14)
+            .into_inner();
+        foo.0
     }
 }
