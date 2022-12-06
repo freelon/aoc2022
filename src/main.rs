@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::process::exit;
 
 use chrono::{Datelike, DateTime, Local};

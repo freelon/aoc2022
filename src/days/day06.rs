@@ -14,18 +14,31 @@ struct Day06 {
 
 impl Day for Day06 {
     fn part1(&self) -> String {
-        let foo = self.input.chars().tuple_windows::<(char, char, char, char)>().enumerate().find(|(index, chars)| {
-            let mut set = HashSet::new();
-            set.insert(chars.0);
-            set.insert(chars.1);
-            set.insert(chars.2);
-            set.insert(chars.3);
-            set.len() == 4
-        }).unwrap();
+        let foo = self
+            .input
+            .chars()
+            .tuple_windows::<(char, char, char, char)>()
+            .enumerate()
+            .find(|(index, chars)| {
+                let mut set = HashSet::new();
+                set.insert(chars.0);
+                set.insert(chars.1);
+                set.insert(chars.2);
+                set.insert(chars.3);
+                set.len() == 4
+            })
+            .unwrap();
         format!("{}", foo.0 + 4)
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let first_message = (0..self.input.len() - 14)
+            .find(|&start| {
+                let part = &self.input[start..start + 14];
+                let set: HashSet<_> = part.chars().collect();
+                set.len() == 14
+            })
+            .unwrap();
+        format!("{}", first_message + 14)
     }
 }
