@@ -11,7 +11,13 @@ impl Day for DayXX {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let filesystem = parse(&self.input);
+        let used = filesystem.size();
+        let max = 70000000;
+        let available = max - used;
+        let need_to_free = 30000000 - available;
+        let smallest_fitting = filesystem.all_sizes().into_iter().filter(|size| *size >= need_to_free).min().unwrap();
+        format!("{smallest_fitting}")
     }
 }
 
@@ -48,6 +54,14 @@ impl Dir {
             result += self.size();
         }
 
+        result
+    }
+
+    fn all_sizes(&self) -> Vec<usize> {
+        let mut result = vec![self.size()];
+        for child in &self.children {
+            result.append(&mut child.all_sizes());
+        }
         result
     }
 }
