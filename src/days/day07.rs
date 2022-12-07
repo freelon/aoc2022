@@ -30,21 +30,15 @@ struct DayXX {
     input: String,
 }
 
-type File = usize;
-
 #[derive(Default)]
 struct Dir {
     children: Vec<Dir>,
-    files: Vec<File>,
+    total_size: usize,
 }
 
 impl Dir {
     fn size(&self) -> usize {
-        self.children
-            .iter()
-            .map(|child| child.size())
-            .sum::<usize>()
-            + self.files.iter().sum::<usize>()
+        self.total_size
     }
 
     fn size_of_subs_smaller_100k(&self) -> usize {
@@ -72,7 +66,6 @@ impl Dir {
 
 fn parse(input: &str) -> Dir {
     let mut remaining: &mut dyn Iterator<Item=&str> = &mut input.lines().skip(1);
-
     process(&mut remaining)
 }
 
@@ -86,11 +79,12 @@ fn process(remaining: &mut dyn Iterator<Item=&str>) -> Dir {
             return dir;
         } else if line.starts_with("$ cd ") {
             let child = process(remaining);
+            dir.total_size += child.total_size;
             dir.children.push(child);
         } else {
             let (size, _filename) = line.split_once(' ').unwrap();
             let size: usize = size.parse().expect("must start with a number!");
-            dir.files.push(size);
+            dir.total_size += size;
         }
     }
     dir
