@@ -13,29 +13,27 @@ struct Day06 {
 
 impl Day for Day06 {
     fn part1(&self) -> String {
-        let foo = self.consumed_until_different(4);
-        format!("{}", foo)
+        let result = self.consumed_until_different(4);
+        result.to_string()
     }
 
     fn part2(&self) -> String {
-        let bar = self.consumed_until_different(14);
-        format!("{}", bar)
+        let result = self.consumed_until_different(14);
+        result.to_string()
     }
 }
 
 impl Day06 {
     fn consumed_until_different(&self, size: usize) -> usize {
         let vec: Vec<_> = self.input.chars().collect();
-        let foo = vec
-            .windows(size)
+        vec.windows(size)
             .fold_while(size, |consumed, next| {
                 if unique_chars(next) {
                     return Done(consumed);
                 }
                 Continue(consumed + 1)
             })
-            .into_inner();
-        foo
+            .into_inner()
     }
 }
 

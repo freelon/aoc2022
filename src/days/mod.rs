@@ -10,7 +10,9 @@ mod day05;
 mod day06;
 mod day07;
 
-pub const ALL: [(u8, fn(String) -> Box<dyn Day>); 7] = [
+type CreateFn = fn(String) -> Box<dyn Day>;
+
+pub const ALL: [(u8, CreateFn); 7] = [
     (1, day01::create),
     (2, day02::create),
     (3, day03::create),

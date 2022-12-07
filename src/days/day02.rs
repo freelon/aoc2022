@@ -14,7 +14,7 @@ impl Day for Day02 {
             .input
             .lines()
             .map(|line| {
-                let (a, b) = line.split_once(" ").unwrap();
+                let (a, b) = line.split_once(' ').unwrap();
 
                 game_points_part_1(a, b) + symbol_points(b)
             })
@@ -27,7 +27,7 @@ impl Day for Day02 {
             .input
             .lines()
             .map(|line| {
-                let (a, b) = line.split_once(" ").unwrap();
+                let (a, b) = line.split_once(' ').unwrap();
 
                 let my_play = play_for_result(a, b);
                 game_points_part_1(a, &my_play) + symbol_points(&my_play)

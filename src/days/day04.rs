@@ -29,7 +29,7 @@ impl Day04 {
         self.input
             .lines()
             .map(|line| {
-                let (left, right) = line.split_once(",").unwrap();
+                let (left, right) = line.split_once(',').unwrap();
                 (to_range(left), to_range(right))
             })
             .filter(|(a, b)| filter(a, b) || filter(b, a))
@@ -38,7 +38,7 @@ impl Day04 {
 }
 
 fn to_range(s: &str) -> R {
-    let (from, to) = s.split_once("-").unwrap();
+    let (from, to) = s.split_once('-').unwrap();
     let (from, to): (u32, u32) = (from.parse().unwrap(), to.parse().unwrap());
     from..=to
 }

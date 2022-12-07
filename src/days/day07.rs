@@ -16,7 +16,12 @@ impl Day for DayXX {
         let max = 70000000;
         let available = max - used;
         let need_to_free = 30000000 - available;
-        let smallest_fitting = filesystem.all_sizes().into_iter().filter(|size| *size >= need_to_free).min().unwrap();
+        let smallest_fitting = filesystem
+            .all_sizes()
+            .into_iter()
+            .filter(|size| *size >= need_to_free)
+            .min()
+            .unwrap();
         format!("{smallest_fitting}")
     }
 }
@@ -29,7 +34,6 @@ type File = usize;
 
 #[derive(Default)]
 struct Dir {
-    name: String,
     children: Vec<Dir>,
     files: Vec<File>,
 }
@@ -69,12 +73,11 @@ impl Dir {
 fn parse(input: &str) -> Dir {
     let mut remaining: &mut dyn Iterator<Item=&str> = &mut input.lines().skip(1);
 
-    process(&mut remaining, "/".into())
+    process(&mut remaining)
 }
 
-fn process(remaining: &mut dyn Iterator<Item=&str>, name: String) -> Dir {
+fn process(remaining: &mut dyn Iterator<Item=&str>) -> Dir {
     let mut dir = Dir::default();
-    dir.name = name;
     while let Some(line) = remaining.next() {
         if line.starts_with("$ ls") || line.starts_with("dir ") {
             // nothing to do here
@@ -82,11 +85,10 @@ fn process(remaining: &mut dyn Iterator<Item=&str>, name: String) -> Dir {
         } else if line.starts_with("$ cd ..") {
             return dir;
         } else if line.starts_with("$ cd ") {
-            let name = line.split(" ").nth(2).unwrap();
-            let child = process(remaining, name.to_string());
+            let child = process(remaining);
             dir.children.push(child);
         } else {
-            let (size, _filename) = line.split_once(" ").unwrap();
+            let (size, _filename) = line.split_once(' ').unwrap();
             let size: usize = size.parse().expect("must start with a number!");
             dir.files.push(size);
         }

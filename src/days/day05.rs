@@ -14,7 +14,7 @@ impl Day for DayXX {
         let mut stacks = Self::initial_stacks(start);
 
         for command in moves.lines() {
-            let parts: Vec<&str> = command.split(" ").collect();
+            let parts: Vec<&str> = command.split(' ').collect();
             let (times, from, to): (usize, usize, usize) = (
                 parts[1].parse().unwrap(),
                 parts[3].parse().unwrap(),
@@ -27,7 +27,7 @@ impl Day for DayXX {
         }
 
         let result: String = stacks.iter().map(|stack| stack.last().unwrap()).collect();
-        format!("{result}")
+        result
     }
 
     fn part2(&self) -> String {
@@ -35,7 +35,7 @@ impl Day for DayXX {
         let mut stacks = Self::initial_stacks(start);
 
         for command in moves.lines() {
-            let parts: Vec<&str> = command.split(" ").collect();
+            let parts: Vec<&str> = command.split(' ').collect();
             let (times, from, to): (usize, usize, usize) = (
                 parts[1].parse().unwrap(),
                 parts[3].parse().unwrap(),
@@ -48,7 +48,7 @@ impl Day for DayXX {
         }
 
         let result: String = stacks.iter().map(|stack| stack.last().unwrap()).collect();
-        format!("{result}")
+        result
     }
 }
 
@@ -60,10 +60,10 @@ impl DayXX {
 
         let highest_stack = stacks.len() - 1; // last line is the stack number
         for y in (0..highest_stack).rev() {
-            for stack in 0..stacks.len() {
-                let cargo = lines[y].chars().nth(stack * 4 + 1).unwrap();
+            for (index, stack) in stacks.iter_mut().enumerate() {
+                let cargo = lines[y].chars().nth(index * 4 + 1).unwrap();
                 if cargo.is_alphabetic() {
-                    stacks[stack].push(cargo);
+                    stack.push(cargo);
                 }
             }
         }
