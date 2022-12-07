@@ -53,16 +53,15 @@ impl Dir {
 }
 
 fn parse(input: &str) -> Dir {
-    let mut remaining: Vec<&str> = input.lines().skip(1).collect();
-    remaining.reverse();
+    let mut remaining: &mut dyn Iterator<Item=&str> = &mut input.lines().skip(1);
 
     process(&mut remaining, "/".into())
 }
 
-fn process(remaining: &mut Vec<&str>, name: String) -> Dir {
+fn process(remaining: &mut dyn Iterator<Item=&str>, name: String) -> Dir {
     let mut dir = Dir::default();
     dir.name = name;
-    while let Some(line) = remaining.pop() {
+    while let Some(line) = remaining.next() {
         if line.starts_with("$ ls") || line.starts_with("dir ") {
             // nothing to do here
             continue;
