@@ -85,6 +85,11 @@ fn process(remaining: &mut Vec<&str>, name: String) -> Dir {
 mod test {
     use crate::days::day07::create;
 
+    #[test]
+    fn example1() {
+        assert_eq!(create(EXAMPLE_INPUT.to_string()).part1(), "95437");
+    }
+
     const EXAMPLE_INPUT: &str = "$ cd /
 $ ls
 dir a
@@ -108,9 +113,4 @@ $ ls
 8033020 d.log
 5626152 d.ext
 7214296 k";
-
-    #[test]
-    fn example1() {
-        assert_eq!(create(EXAMPLE_INPUT.to_string()).part1(), "95437");
-    }
 }
