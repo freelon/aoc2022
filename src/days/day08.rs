@@ -31,7 +31,7 @@ impl Day for Day08 {
             .max()
             .unwrap()
             .to_string()
-    } // 201600 too low
+    }
 }
 
 impl Day08 {
