@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 
@@ -17,8 +15,8 @@ impl Day for Day08 {
     fn part1(&self) -> String {
         let (trees, h, w) = self.load_trees();
 
-        trees
-            .keys()
+        (0..h)
+            .cartesian_product(0..w)
             .filter(|(tx, ty)| is_visible(&trees, *tx, *ty, h, w))
             .count()
             .to_string()
@@ -27,9 +25,9 @@ impl Day for Day08 {
     fn part2(&self) -> String {
         let (trees, h, w) = self.load_trees();
 
-        trees
-            .keys()
-            .map(|(tx, ty)| scenic_score(&trees, *tx, *ty, h, w))
+        (0..h)
+            .cartesian_product(0..w)
+            .map(|(tx, ty)| scenic_score(&trees, tx, ty, h, w))
             .max()
             .unwrap()
             .to_string()
@@ -37,54 +35,37 @@ impl Day for Day08 {
 }
 
 impl Day08 {
-    fn load_trees(&self) -> (HashMap<(usize, usize), u32>, usize, usize) {
-        let trees: HashMap<(usize, usize), u32> = self
+    fn load_trees(&self) -> (Vec<Vec<u32>>, usize, usize) {
+        let trees: Vec<Vec<u32>> = self
             .input
             .lines()
-            .enumerate()
-            .flat_map(|(y, line)| {
-                line.chars()
-                    .enumerate()
-                    .map(move |(x, c)| ((x, y), c.to_digit(10).unwrap()))
-            })
-            .collect();
+            .map(|line| line.chars().map(|c| c.to_digit(10).unwrap()).collect_vec())
+            .collect_vec();
 
-        let h = self.input.lines().count();
-        let w = self.input.lines().next().unwrap().len();
+        let h = trees.len();
+        let w = trees[0].len();
         (trees, h, w)
     }
 }
 
-fn is_visible(
-    trees: &HashMap<(usize, usize), u32>,
-    tx: usize,
-    ty: usize,
-    h: usize,
-    w: usize,
-) -> bool {
-    let height = trees[&(tx, ty)];
-    // invisible check
-    let top = (0..ty).any(|y| trees[&(tx, y)] >= height);
-    let bottom = (ty + 1..h).any(|y| trees[&(tx, y)] >= height);
-    let left = (0..tx).any(|x| trees[&(x, ty)] >= height);
-    let right = (tx + 1..w).any(|x| trees[&(x, ty)] >= height);
+fn is_visible(trees: &Vec<Vec<u32>>, tx: usize, ty: usize, h: usize, w: usize) -> bool {
+    let height = trees[ty][tx];
+    // invisible check, stops at the first occlusion -> potentially MUUUCH faster :P
+    let top = (0..ty).any(|y| trees[y][tx] >= height);
+    let bottom = (ty + 1..h).any(|y| trees[y][tx] >= height);
+    let left = (0..tx).any(|x| trees[ty][x] >= height);
+    let right = (tx + 1..w).any(|x| trees[ty][x] >= height);
     // invert
     !(top && bottom && left && right)
 }
 
-fn scenic_score(
-    trees: &HashMap<(usize, usize), u32>,
-    tx: usize,
-    ty: usize,
-    h: usize,
-    w: usize,
-) -> usize {
-    let height = trees[&(tx, ty)];
+fn scenic_score(trees: &Vec<Vec<u32>>, tx: usize, ty: usize, h: usize, w: usize) -> usize {
+    let height = trees[ty][tx];
     // invisible check
     let top = (0..ty)
         .rev()
         .fold_while(0, |count, y| {
-            if trees[&(tx, y)] >= height {
+            if trees[y][tx] >= height {
                 Done(count + 1)
             } else {
                 Continue(count + 1)
@@ -93,7 +74,7 @@ fn scenic_score(
         .into_inner();
     let bottom = (ty + 1..h)
         .fold_while(0, |count, y| {
-            if trees[&(tx, y)] >= height {
+            if trees[y][tx] >= height {
                 Done(count + 1)
             } else {
                 Continue(count + 1)
@@ -103,7 +84,7 @@ fn scenic_score(
     let left = (0..tx)
         .rev()
         .fold_while(0, |count, x| {
-            if trees[&(x, ty)] >= height {
+            if trees[ty][x] >= height {
                 Done(count + 1)
             } else {
                 Continue(count + 1)
@@ -112,7 +93,7 @@ fn scenic_score(
         .into_inner();
     let right = (tx + 1..w)
         .fold_while(0, |count, x| {
-            if trees[&(x, ty)] >= height {
+            if trees[ty][x] >= height {
                 Done(count + 1)
             } else {
                 Continue(count + 1)
