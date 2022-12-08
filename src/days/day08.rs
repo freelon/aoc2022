@@ -48,7 +48,7 @@ impl Day08 {
     }
 }
 
-fn is_visible(trees: &Vec<Vec<u32>>, tx: usize, ty: usize, h: usize, w: usize) -> bool {
+fn is_visible(trees: &[Vec<u32>], tx: usize, ty: usize, h: usize, w: usize) -> bool {
     let height = trees[ty][tx];
     // invisible check, stops at the first occlusion -> potentially MUUUCH faster :P
     let top = (0..ty).any(|y| trees[y][tx] >= height);
@@ -59,7 +59,7 @@ fn is_visible(trees: &Vec<Vec<u32>>, tx: usize, ty: usize, h: usize, w: usize) -
     !(top && bottom && left && right)
 }
 
-fn scenic_score(trees: &Vec<Vec<u32>>, tx: usize, ty: usize, h: usize, w: usize) -> usize {
+fn scenic_score(trees: &[Vec<u32>], tx: usize, ty: usize, h: usize, w: usize) -> usize {
     let height = trees[ty][tx];
     // invisible check
     let top = (0..ty)
