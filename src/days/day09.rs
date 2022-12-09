@@ -12,10 +12,18 @@ struct Day09 {
 
 impl Day for Day09 {
     fn part1(&self) -> String {
-        let mut initial_state = State::default();
-        initial_state.visited.insert(P::new(0, 0));
-        let result = self
-            .input
+        self.run(2).visited.len().to_string()
+    }
+
+    fn part2(&self) -> String {
+        self.run(10).visited.len().to_string()
+    }
+}
+
+impl Day09 {
+    fn run(&self, tail_length: usize) -> State {
+        let initial_state = State::new(tail_length);
+        self.input
             .lines()
             .flat_map(|line| {
                 let (dir, count) = line.split_once(' ').unwrap();
@@ -30,29 +38,34 @@ impl Day for Day09 {
                     _ => panic!("unknown movement {c}"),
                 };
 
-                state.h = state.h.add(move_head);
+                state.knots[0] = state.knots[0].add(move_head);
 
-                let move_tail = tail_move_direction(state.h, state.t);
-                state.t = state.t.add(move_tail);
-
-                state.visited.insert(state.t);
+                for j in 1..state.knots.len() {
+                    let move_tail = tail_move_direction(state.knots[j - 1], state.knots[j]);
+                    state.knots[j] = state.knots[j].add(move_tail);
+                }
+                state.visited.insert(state.knots[state.knots.len() - 1]);
 
                 state
-            });
-
-        result.visited.len().to_string()
-    }
-
-    fn part2(&self) -> String {
-        format!("")
+            })
     }
 }
 
 #[derive(Default)]
 struct State {
-    h: P,
-    t: P,
+    knots: Vec<P>,
     visited: HashSet<P>,
+}
+
+impl State {
+    fn new(tail_length: usize) -> Self {
+        let mut result = Self {
+            knots: vec![P::new(0, 0); tail_length],
+            visited: HashSet::default(),
+        };
+        result.visited.insert(P::new(0, 0));
+        result
+    }
 }
 
 #[derive(Default, Copy, Clone, Eq, PartialEq, Hash, Debug)]
