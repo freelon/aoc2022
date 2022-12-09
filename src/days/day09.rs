@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use derive_more::From;
+
 use crate::days::Day;
 
 pub fn create(input: String) -> Box<dyn Day> {
@@ -31,10 +33,10 @@ impl Day09 {
             })
             .fold(initial_state, |mut state, c| {
                 let move_head = match c {
-                    'U' => P::new(0, 1),
-                    'D' => P::new(0, -1),
-                    'L' => P::new(-1, 0),
-                    'R' => P::new(1, 0),
+                    'U' => (0, 1).into(),
+                    'D' => (0, -1).into(),
+                    'L' => (-1, 0).into(),
+                    'R' => (1, 0).into(),
                     _ => panic!("unknown movement {c}"),
                 };
 
@@ -60,31 +62,31 @@ struct State {
 impl State {
     fn new(tail_length: usize) -> Self {
         let mut result = Self {
-            knots: vec![P::new(0, 0); tail_length],
+            knots: vec![(0, 0).into(); tail_length],
             visited: HashSet::default(),
         };
-        result.visited.insert(P::new(0, 0));
+        result.visited.insert((0, 0).into());
         result
     }
 }
 
-#[derive(Default, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Default, Copy, Clone, Eq, PartialEq, Hash, Debug, From)]
 struct P {
     x: i32,
     y: i32,
 }
 
 impl P {
-    fn new(x: i32, y: i32) -> Self {
-        P { x, y }
+    fn add(&self, other: Self) -> Self {
+        (self.x + other.x, self.y + other.y).into()
     }
 
-    fn add(&self, other: P) -> P {
-        Self::new(self.x + other.x, self.y + other.y)
+    fn sub(&self, other: Self) -> Self {
+        (self.x - other.x, self.y - other.y).into()
     }
 
-    fn sub(&self, other: P) -> P {
-        Self::new(self.x - other.x, self.y - other.y)
+    fn signum(&self) -> Self {
+        (self.x.signum(), self.y.signum()).into()
     }
 }
 
@@ -92,9 +94,9 @@ fn tail_move_direction(h: P, t: P) -> P {
     let direction = h.sub(t);
 
     if direction.x.abs() > 1 || direction.y.abs() > 1 {
-        P::new(direction.x.signum(), direction.y.signum())
+        direction.signum()
     } else {
-        P::new(0, 0)
+        (0, 0).into()
     }
 }
 
@@ -109,6 +111,14 @@ mod test {
             input: EXAMPLE.to_string(),
         };
         assert_eq!(day.part1(), "13");
+    }
+
+    #[test]
+    fn part2() {
+        let day = Day09 {
+            input: EXAMPLE.to_string(),
+        };
+        assert_eq!(day.part2(), "1");
     }
 
     const EXAMPLE: &str = "R 4
