@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ops::{Add, AddAssign, Sub};
 
 use derive_more::From;
 
@@ -40,13 +41,13 @@ impl Day09 {
                     _ => panic!("unknown movement {c}"),
                 };
 
-                state.knots[0] = state.knots[0].add(move_head);
+                state.knots[0] += move_head;
 
                 for j in 1..state.knots.len() {
                     let move_tail = tail_move_direction(state.knots[j - 1], state.knots[j]);
-                    state.knots[j] = state.knots[j].add(move_tail);
+                    state.knots[j] += move_tail;
                 }
-                state.visited.insert(state.knots[state.knots.len() - 1]);
+                state.visited.insert(*state.knots.last().unwrap());
 
                 state
             })
@@ -77,21 +78,35 @@ struct P {
 }
 
 impl P {
-    fn add(&self, other: Self) -> Self {
-        (self.x + other.x, self.y + other.y).into()
-    }
-
-    fn sub(&self, other: Self) -> Self {
-        (self.x - other.x, self.y - other.y).into()
-    }
-
     fn signum(&self) -> Self {
         (self.x.signum(), self.y.signum()).into()
     }
 }
 
+impl Add for P {
+    type Output = P;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        (self.x + rhs.x, self.y + rhs.y).into()
+    }
+}
+
+impl AddAssign for P {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl Sub for P {
+    type Output = P;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        (self.x - rhs.x, self.y - rhs.y).into()
+    }
+}
+
 fn tail_move_direction(h: P, t: P) -> P {
-    let direction = h.sub(t);
+    let direction = h - t;
 
     if direction.x.abs() > 1 || direction.y.abs() > 1 {
         direction.signum()

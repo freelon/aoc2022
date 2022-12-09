@@ -15,10 +15,10 @@ dependencies = [
 name = "aoc2022"
 version = "0.1.0"
 dependencies = [
-    "chrono",
-    "clap",
-    "derive_more",
-    "itertools",
+ "chrono",
+ "clap",
+ "derive_more",
+ "itertools",
 ]
 
 [[package]]
@@ -109,8 +109,8 @@ version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
 dependencies = [
-    "termcolor",
-    "unicode-width",
+ "termcolor",
+ "unicode-width",
 ]
 
 [[package]]
@@ -164,9 +164,9 @@ version = "1.0.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a08a6e2fcc370a089ad3b4aaf54db3b1b4cee38ddabce5896b33eb693275f470"
 dependencies = [
-    "proc-macro2",
-    "quote",
-    "syn",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -175,11 +175,11 @@ version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
 dependencies = [
-    "convert_case",
-    "proc-macro2",
-    "quote",
-    "rustc_version",
-    "syn",
+ "convert_case",
+ "proc-macro2",
+ "quote",
+ "rustc_version",
+ "syn",
 ]
 
 [[package]]
@@ -388,7 +388,7 @@ version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbe448f377a7d6961e30f5955f9b8d106c3f5e449d493ee1b125c1d43c2b5179"
 dependencies = [
-    "proc-macro2",
+ "proc-macro2",
 ]
 
 [[package]]
@@ -397,7 +397,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
 dependencies = [
-    "semver",
+ "semver",
 ]
 
 [[package]]
@@ -406,12 +406,12 @@ version = "0.36.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb93e85278e08bb5788653183213d3a60fc242b10cb9be96586f5a73dcb67c23"
 dependencies = [
-    "bitflags",
-    "errno",
-    "io-lifetimes",
+ "bitflags",
+ "errno",
+ "io-lifetimes",
  "libc",
-    "linux-raw-sys",
-    "windows-sys",
+ "linux-raw-sys",
+ "windows-sys",
 ]
 
 [[package]]
