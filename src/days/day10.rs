@@ -72,7 +72,10 @@ impl Day for Day10 {
             .collect();
 
         for line in 0..6 {
-            println!("{}", pixels.chars().skip(40 * line).take(40).collect::<String>());
+            println!(
+                "{}",
+                pixels.chars().skip(40 * line).take(40).collect::<String>()
+            );
         }
 
         "EHBZLRJR".to_string()

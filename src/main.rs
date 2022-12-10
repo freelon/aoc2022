@@ -6,8 +6,10 @@ use chrono::{Datelike, DateTime, Local};
 use clap::Parser;
 
 use crate::days::{ALL, run};
+use crate::inputs::ensure_input_exists;
 
 mod days;
+mod inputs;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -46,5 +48,7 @@ fn main() {
         }
         vec![day as u8]
     };
+
+    days.iter().for_each(|day| ensure_input_exists(*day));
     run(days, cli.time);
 }
