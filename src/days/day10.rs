@@ -34,14 +34,48 @@ impl Day for Day10 {
             .enumerate()
             .skip(18)
             .step_by(40)
-            .inspect(|x| println!("{:?}", x))
             .map(|(x, v)| (x as i32 + 2) * v)
             .sum::<i32>()
             .to_string()
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let values_after_cycle = self
+            .input
+            .lines()
+            .flat_map(|line| {
+                if line.starts_with("noop") {
+                    vec![0]
+                } else {
+                    let (_, v) = line.split_once(' ').unwrap();
+                    let v: i32 = v.parse().unwrap();
+                    vec![0, v]
+                }
+            })
+            .fold((vec![1], 1), |(mut result, mut x), v| {
+                x += v;
+                result.push(x);
+                (result, x)
+            })
+            .0;
+
+        let pixels: String = (0..240)
+            .zip(values_after_cycle)
+            .map(|(cycle, sprite_x)| {
+                let crt_x = cycle % 40;
+                if (sprite_x - crt_x).abs() <= 1 {
+                    '#'
+                } else {
+                    ' '
+                }
+            })
+            .collect();
+
+        for line in 0..6 {
+            println!("{}", &pixels[line * 40..(line + 1) * 40]);
+        }
+
+        "EHBZLRJR".to_string()
     }
 }
 
