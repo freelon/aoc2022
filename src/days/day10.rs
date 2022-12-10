@@ -26,12 +26,14 @@ impl Day for Day10 {
             })
             .collect_vec();
 
-        let mut values_after_cycle = vec![];
-        let mut x = 1;
-        for c in 0..changes_after_cycle.len() {
-            x += changes_after_cycle[c];
-            values_after_cycle.push(x);
-        }
+        let (values_after_cycle, _) =
+            changes_after_cycle
+                .into_iter()
+                .fold((vec![], 1), |(mut result, mut x), v| {
+                    x += v;
+                    result.push(x);
+                    (result, x)
+                });
 
         // value during cycle x is v[c-2]
         // -1 because the vec is 0 based
