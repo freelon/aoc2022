@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use crate::days::Day;
 
 pub fn create(input: String) -> Box<dyn Day> {
@@ -12,8 +10,7 @@ struct Day10 {
 
 impl Day for Day10 {
     fn part1(&self) -> String {
-        let changes_after_cycle = self
-            .input
+        self.input
             .lines()
             .flat_map(|line| {
                 if line.starts_with("noop") {
@@ -24,22 +21,16 @@ impl Day for Day10 {
                     vec![0, v]
                 }
             })
-            .collect_vec();
-
-        let (values_after_cycle, _) =
-            changes_after_cycle
-                .into_iter()
-                .fold((vec![], 1), |(mut result, mut x), v| {
-                    x += v;
-                    result.push(x);
-                    (result, x)
-                });
-
-        // value during cycle x is v[c-2]
-        // -1 because the vec is 0 based
-        // -1 because vec[y] stores what's in the register _after_ cycle y
-        values_after_cycle
+            .fold((vec![], 1), |(mut result, mut x), v| {
+                x += v;
+                result.push(x);
+                (result, x)
+            })
+            .0
             .into_iter()
+            // value during cycle x is v[c-2]
+            // -1 because the vec is 0 based
+            // -1 because vec[y] stores what's in the register _after_ cycle y
             .enumerate()
             .skip(18)
             .step_by(40)
