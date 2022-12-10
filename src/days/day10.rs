@@ -64,7 +64,7 @@ impl Day for Day10 {
             .map(|(cycle, sprite_x)| {
                 let crt_x = cycle % 40;
                 if (sprite_x - crt_x).abs() <= 1 {
-                    '#'
+                    '█'
                 } else {
                     ' '
                 }
@@ -72,7 +72,7 @@ impl Day for Day10 {
             .collect();
 
         for line in 0..6 {
-            println!("{}", &pixels[line * 40..(line + 1) * 40]);
+            println!("{}", pixels.chars().skip(40 * line).take(40).collect::<String>());
         }
 
         "EHBZLRJR".to_string()
