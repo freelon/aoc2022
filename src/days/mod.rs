@@ -55,8 +55,10 @@ pub fn run(days_to_run: Vec<u8>, collect_timing: bool) {
             };
 
             let path = format!("input/day{:02}.txt", day);
-            let input_of_day =
-                read_to_string(&path).expect(&format!("Missing input file '{}'", path));
+            let input_of_day = read_to_string(&path).unwrap_or_else(|_| {
+                println!("Missing input file '{}'", path);
+                exit(-1)
+            });
             let task = (fun)(input_of_day);
             (day, task)
         })

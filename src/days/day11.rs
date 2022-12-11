@@ -32,7 +32,7 @@ impl Day for Day11 {
 
     fn part2(&self) -> String {
         let mut monkeys = read(&self.input);
-        let all = monkeys.iter().map(|m| m.test_divisor).fold(1, |a, b| a * b);
+        let all: i64 = monkeys.iter().map(|m| m.test_divisor).product();
         let reduction = |level| level % all;
         for _ in 0..10000 {
             for m in 0..monkeys.len() {
@@ -52,7 +52,7 @@ impl Day for Day11 {
 fn read(input: &str) -> Vec<Monkey> {
     input
         .split("\n\n")
-        .map(|block| Monkey::new(block))
+        .map(Monkey::new)
         .collect_vec()
 }
 
