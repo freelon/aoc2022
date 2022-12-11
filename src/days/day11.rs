@@ -57,7 +57,7 @@ fn read(input: &str) -> Vec<Monkey> {
 #[derive(Debug)]
 struct Monkey {
     items: VecDeque<i64>,
-    operation: (char, Operand),
+    operation: (Operator, Operand),
     test_divisor: i64,
     target_false: usize,
     target_true: usize,
@@ -79,6 +79,12 @@ impl Operand {
     }
 }
 
+#[derive(Debug)]
+enum Operator {
+    Add,
+    Multiplication,
+}
+
 impl Monkey {
     pub(crate) fn play<F>(&mut self, reduction: F) -> Option<(usize, i64)>
         where
@@ -90,9 +96,8 @@ impl Monkey {
             let level_after_inspection = {
                 let rhs: i64 = self.operation.1.value(item);
                 let result = match self.operation.0 {
-                    '*' => item * rhs,
-                    '+' => item + rhs,
-                    _ => panic!("unknown operator"),
+                    Operator::Multiplication => item * rhs,
+                    Operator::Add => item + rhs,
                 };
                 result
             };
@@ -123,10 +128,11 @@ impl Monkey {
 
         let op = lines[2].split(' ').collect_vec();
         let operation = (
-            op[op.len() - 2]
-                .chars()
-                .next()
-                .expect("operand must be 1 char"),
+            match op[op.len() - 2].chars().next().unwrap() {
+                '*' => Operator::Multiplication,
+                '+' => Operator::Add,
+                _ => panic!("unknown operator"),
+            },
             op[op.len() - 1]
                 .parse::<i64>()
                 .map(|v| Operand::Value(v))
