@@ -15,11 +15,10 @@ struct Day11 {
 impl Day for Day11 {
     fn part1(&self) -> String {
         let mut monkeys = read(&self.input);
-        println!("{:?}", monkeys);
+        let reduction = |level| level / 3;
         for _ in 0..20 {
             for m in 0..monkeys.len() {
-                while let Some((target, number)) = monkeys[m].play() {
-                    println!("{m} throws {number} to {target}");
+                while let Some((target, number)) = monkeys[m].play(reduction) {
                     monkeys[target].items.push_back(number);
                 }
             }
@@ -32,7 +31,21 @@ impl Day for Day11 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let mut monkeys = read(&self.input);
+        let all = monkeys.iter().map(|m| m.test_divisor).fold(1, |a, b| a * b);
+        let reduction = |level| level % all;
+        for _ in 0..10000 {
+            for m in 0..monkeys.len() {
+                while let Some((target, number)) = monkeys[m].play(reduction) {
+                    monkeys[target].items.push_back(number);
+                }
+            }
+        }
+
+        let mut inspections = monkeys.iter().map(|m| m.inspections).collect_vec();
+        inspections.sort();
+        inspections.reverse();
+        (inspections[0] * inspections[1]).to_string()
     }
 }
 
@@ -54,7 +67,10 @@ struct Monkey {
 }
 
 impl Monkey {
-    pub(crate) fn play(&mut self) -> Option<(usize, i64)> {
+    pub(crate) fn play<F>(&mut self, reduction: F) -> Option<(usize, i64)>
+        where
+            F: Fn(i64) -> i64,
+    {
         if let Some(item) = self.items.pop_front() {
             self.inspections += 1;
 
@@ -64,12 +80,12 @@ impl Monkey {
                 let result = match self.operation.1.chars().next().unwrap() {
                     '*' => lhs * rhs,
                     '+' => lhs + rhs,
-                    _ => panic!("unknown operator")
+                    _ => panic!("unknown operator"),
                 };
                 result
             };
 
-            let level = level_after_inspection / 3;
+            let level = reduction(level_after_inspection);
 
             let target = if level % self.test_divisor == 0 {
                 self.target_true
@@ -138,7 +154,24 @@ mod test {
 
     #[test]
     fn part1() {
-        assert_eq!(Day11 { input: EXAMPLE.to_string() }.part1(), "10605");
+        assert_eq!(
+            Day11 {
+                input: EXAMPLE.to_string()
+            }
+                .part1(),
+            "10605"
+        );
+    }
+
+    #[test]
+    fn part2() {
+        assert_eq!(
+            Day11 {
+                input: EXAMPLE.to_string()
+            }
+                .part2(),
+            "2713310158"
+        );
     }
 
     const EXAMPLE: &str = "Monkey 0:
