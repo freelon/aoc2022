@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::time::{Duration, Instant};
 
 use itertools::Itertools;
 
@@ -14,7 +15,7 @@ struct Day11 {
 
 impl Day for Day11 {
     fn part1(&self) -> String {
-        let mut monkeys = read(&self.input);
+        let (_, mut monkeys) = time(|| read(&self.input), "input 1");
         let reduction = |level| level / 3;
         for _ in 0..20 {
             for m in 0..monkeys.len() {
@@ -31,7 +32,7 @@ impl Day for Day11 {
     }
 
     fn part2(&self) -> String {
-        let mut monkeys = read(&self.input);
+        let (_, mut monkeys) = time(|| read(&self.input), "input 1");
         let all: i64 = monkeys.iter().map(|m| m.test_divisor).product();
         let reduction = |level| level % all;
         for _ in 0..10000 {
@@ -50,10 +51,7 @@ impl Day for Day11 {
 }
 
 fn read(input: &str) -> Vec<Monkey> {
-    input
-        .split("\n\n")
-        .map(Monkey::new)
-        .collect_vec()
+    input.split("\n\n").map(Monkey::new).collect_vec()
 }
 
 #[derive(Debug, Default)]
@@ -145,6 +143,17 @@ impl Monkey {
             ..Monkey::default()
         }
     }
+}
+
+fn time<F, T>(f: F, name: &str) -> (Duration, T)
+    where
+        F: Fn() -> T,
+{
+    let start = Instant::now();
+    let result = f();
+    let duration = Instant::now().duration_since(start);
+    println!("Duration of {name}: {:?}", duration);
+    (duration, result)
 }
 
 #[cfg(test)]
