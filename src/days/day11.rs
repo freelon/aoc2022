@@ -54,14 +54,29 @@ fn read(input: &str) -> Vec<Monkey> {
     input.split("\n\n").map(Monkey::new).collect_vec()
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Monkey {
     items: VecDeque<i64>,
-    operation: (String, char, String),
+    operation: (char, Operand),
     test_divisor: i64,
     target_false: usize,
     target_true: usize,
     inspections: usize,
+}
+
+#[derive(Debug)]
+enum Operand {
+    Old,
+    Value(i64),
+}
+
+impl Operand {
+    fn value(&self, item_value: i64) -> i64 {
+        match self {
+            Operand::Old => item_value,
+            Operand::Value(v) => *v,
+        }
+    }
 }
 
 impl Monkey {
@@ -73,11 +88,10 @@ impl Monkey {
             self.inspections += 1;
 
             let level_after_inspection = {
-                let lhs: i64 = self.operation.0.parse::<i64>().unwrap_or(item);
-                let rhs: i64 = self.operation.2.parse::<i64>().unwrap_or(item);
-                let result = match self.operation.1 {
-                    '*' => lhs * rhs,
-                    '+' => lhs + rhs,
+                let rhs: i64 = self.operation.1.value(item);
+                let result = match self.operation.0 {
+                    '*' => item * rhs,
+                    '+' => item + rhs,
                     _ => panic!("unknown operator"),
                 };
                 result
@@ -109,9 +123,14 @@ impl Monkey {
 
         let op = lines[2].split(' ').collect_vec();
         let operation = (
-            op[op.len() - 3].to_string(),
-            op[op.len() - 2].chars().next().expect("operand must be 1 char"),
-            op[op.len() - 1].to_string(),
+            op[op.len() - 2]
+                .chars()
+                .next()
+                .expect("operand must be 1 char"),
+            op[op.len() - 1]
+                .parse::<i64>()
+                .map(|v| Operand::Value(v))
+                .unwrap_or(Operand::Old),
         );
 
         let test_divisor: i64 = lines[3]
@@ -140,7 +159,7 @@ impl Monkey {
             test_divisor,
             target_false,
             target_true,
-            ..Monkey::default()
+            inspections: 0,
         }
     }
 }
