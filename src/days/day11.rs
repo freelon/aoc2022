@@ -57,7 +57,7 @@ fn read(input: &str) -> Vec<Monkey> {
 #[derive(Debug, Default)]
 struct Monkey {
     items: VecDeque<i64>,
-    operation: (String, String, String),
+    operation: (String, char, String),
     test_divisor: i64,
     target_false: usize,
     target_true: usize,
@@ -75,7 +75,7 @@ impl Monkey {
             let level_after_inspection = {
                 let lhs: i64 = self.operation.0.parse::<i64>().unwrap_or(item);
                 let rhs: i64 = self.operation.2.parse::<i64>().unwrap_or(item);
-                let result = match self.operation.1.chars().next().unwrap() {
+                let result = match self.operation.1 {
                     '*' => lhs * rhs,
                     '+' => lhs + rhs,
                     _ => panic!("unknown operator"),
@@ -110,7 +110,7 @@ impl Monkey {
         let op = lines[2].split(' ').collect_vec();
         let operation = (
             op[op.len() - 3].to_string(),
-            op[op.len() - 2].to_string(),
+            op[op.len() - 2].chars().next().expect("operand must be 1 char"),
             op[op.len() - 1].to_string(),
         );
 
