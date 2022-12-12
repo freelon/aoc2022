@@ -17,13 +17,20 @@ struct Day12 {
 impl Day for Day12 {
     fn part1(&self) -> String {
         let (map, start, stop) = read(&self.input);
-        println!("{:?}", start);
-        println!("{:?}", stop);
-        shortest_path(&map, start, stop).to_string()
+        shortest_path(&map, start, stop)
+            .expect("there is always a solution")
+            .to_string()
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let (map, _, stop) = read(&self.input);
+
+        map.iter()
+            .filter(|(_, h)| **h == 0)
+            .flat_map(|(start, _)| shortest_path(&map, *start, stop))
+            .min()
+            .unwrap()
+            .to_string()
     }
 }
 
@@ -75,7 +82,7 @@ fn neighbors(map: &Map, point: Point) -> Vec<Point> {
         .collect()
 }
 
-fn shortest_path(map: &Map, start: Point, goal: Point) -> usize {
+fn shortest_path(map: &Map, start: Point, goal: Point) -> Option<usize> {
     let mut visited: HashMap<Point, usize> = HashMap::new();
     let mut queue = VecDeque::new();
     queue.push_back((start, 0));
@@ -95,7 +102,7 @@ fn shortest_path(map: &Map, start: Point, goal: Point) -> usize {
         }
     }
 
-    visited[&goal]
+    visited.get(&goal).copied()
 }
 
 #[cfg(test)]
