@@ -17,17 +17,16 @@ struct Day12 {
 impl Day for Day12 {
     fn part1(&self) -> String {
         let (map, start, stop) = read(&self.input);
-        shortest_path(&map, start, stop)
-            .expect("there is always a solution")
-            .to_string()
+        shortest_paths(&map, stop)[&start].to_string()
     }
 
     fn part2(&self) -> String {
         let (map, _, stop) = read(&self.input);
 
-        map.iter()
-            .filter(|(_, h)| **h == 0)
-            .flat_map(|(start, _)| shortest_path(&map, *start, stop))
+        shortest_paths(&map, stop)
+            .iter()
+            .filter(|(p, _)| map[p] == 0)
+            .map(|(_, distance)| distance)
             .min()
             .unwrap()
             .to_string()
@@ -63,18 +62,18 @@ fn read(input: &str) -> (Map, Point, Point) {
     (map, start, goal)
 }
 
-fn neighbors(map: &Map, point: Point) -> Vec<Point> {
-    let own_height = map[&point];
+fn can_go_to_target(map: &Map, target: Point) -> Vec<Point> {
+    let own_height = map[&target];
     vec![
-        (point.0, point.1 + 1),
-        (point.0, point.1 - 1),
-        (point.0 + 1, point.1),
-        (point.0 - 1, point.1),
+        (target.0, target.1 + 1),
+        (target.0, target.1 - 1),
+        (target.0 + 1, target.1),
+        (target.0 - 1, target.1),
     ]
         .into_iter()
         .filter(|p| {
             if let Some(h) = map.get(p) {
-                *h <= own_height + 1
+                *h + 1 >= own_height
             } else {
                 false
             }
@@ -82,27 +81,24 @@ fn neighbors(map: &Map, point: Point) -> Vec<Point> {
         .collect()
 }
 
-fn shortest_path(map: &Map, start: Point, goal: Point) -> Option<usize> {
+fn shortest_paths(map: &Map, stop: Point) -> HashMap<Point, usize> {
     let mut visited: HashMap<Point, usize> = HashMap::new();
     let mut queue = VecDeque::new();
-    queue.push_back((start, 0));
+    queue.push_back((stop, 0));
     while let Some((next, distance)) = queue.pop_front() {
         if visited.contains_key(&next) {
             continue;
         }
 
         visited.insert(next, distance);
-        let neighbors = neighbors(map, next);
+
+        let neighbors = can_go_to_target(map, next);
         for n in neighbors {
             queue.push_back((n, distance + 1));
         }
-
-        if next == goal {
-            break;
-        }
     }
 
-    visited.get(&goal).copied()
+    visited
 }
 
 #[cfg(test)]
@@ -118,6 +114,17 @@ mod test {
             }
                 .part1(),
             "31"
+        );
+    }
+
+    #[test]
+    fn part2() {
+        assert_eq!(
+            Day12 {
+                input: INPUT.to_string()
+            }
+                .part2(),
+            "29"
         );
     }
 
