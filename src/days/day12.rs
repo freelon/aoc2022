@@ -52,9 +52,9 @@ fn read(input: &str) -> (Map, Point, Point) {
         .into_iter()
         .map(|(p, v)| {
             let h = match v {
-                'a'..='z' => v as u8 - 'a' as u8,
+                'a'..='z' => v as u8 - b'a',
                 'S' => 0,
-                'E' => 'z' as u8 - 'a' as u8,
+                'E' => b'z' - b'a',
                 _ => panic!("unexpected input character"),
             };
             (p, h)
@@ -92,7 +92,7 @@ fn shortest_path(map: &Map, start: Point, goal: Point) -> Option<usize> {
         }
 
         visited.insert(next, distance);
-        let neighbors = neighbors(&map, next);
+        let neighbors = neighbors(map, next);
         for n in neighbors {
             queue.push_back((n, distance + 1));
         }

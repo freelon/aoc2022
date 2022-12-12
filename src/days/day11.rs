@@ -95,11 +95,10 @@ impl Monkey {
 
             let level_after_inspection = {
                 let rhs: i64 = self.operation.1.value(item);
-                let result = match self.operation.0 {
+                match self.operation.0 {
                     Operator::Multiplication => item * rhs,
                     Operator::Add => item + rhs,
-                };
-                result
+                }
             };
 
             let level = reduction(level_after_inspection);
@@ -135,7 +134,7 @@ impl Monkey {
             },
             op[op.len() - 1]
                 .parse::<i64>()
-                .map(|v| Operand::Value(v))
+                .map(Operand::Value)
                 .unwrap_or(Operand::Old),
         );
 
