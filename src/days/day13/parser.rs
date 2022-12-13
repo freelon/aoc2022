@@ -1,17 +1,18 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::i32;
+use nom::combinator::eof;
 use nom::IResult;
 use nom::multi::separated_list0;
-use nom::sequence::{delimited, separated_pair};
+use nom::sequence::{delimited, pair, separated_pair};
 
 use crate::days::day13::{Packet, Pair, Signal, Value};
 
 pub(super) fn signal(s: &str) -> IResult<&str, Signal> {
-    separated_list0(tag("\n\n"), pair)(s).map(|(rem, pairs)| (rem, Signal(pairs)))
+    pair(separated_list0(tag("\n\n"), pairs), eof)(s.trim()).map(|(rem, (pairs, _))| (rem, Signal(pairs)))
 }
 
-fn pair(s: &str) -> IResult<&str, Pair> {
+fn pairs(s: &str) -> IResult<&str, Pair> {
     separated_pair(packet, tag("\n"), packet)(s).map(|(rem, (lhs, rhs))| (rem, Pair { lhs, rhs }))
 }
 
@@ -34,7 +35,7 @@ fn list(s: &str) -> IResult<&str, Value> {
 
 #[cfg(test)]
 mod test {
-    use crate::days::day13::parser::{int, list, packet, pair, signal};
+    use crate::days::day13::parser::{int, list, packet, pairs, signal};
 
     use super::{Packet, Pair, Signal, Value};
 
@@ -56,7 +57,7 @@ mod test {
     #[test]
     fn parse_pair() {
         assert_eq!(
-            pair("[]\n[]\n"),
+            pairs("[]\n[]\n"),
             Ok((
                 "\n",
                 Pair {
@@ -70,9 +71,9 @@ mod test {
     #[test]
     fn parse_signal() {
         assert_eq!(
-            signal("[]\n[]\n"),
+            signal("[]\n[]"),
             Ok((
-                "\n",
+                "",
                 Signal(vec![Pair {
                     lhs: Packet(Value::List(vec![])),
                     rhs: Packet(Value::List(vec![])),
