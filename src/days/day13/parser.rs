@@ -16,7 +16,7 @@ fn pair(s: &str) -> IResult<&str, Pair> {
 }
 
 fn packet(s: &str) -> IResult<&str, Packet> {
-    value(s).map(|(rem, value)| (rem, Packet(value)))
+    list(s).map(|(rem, value)| (rem, Packet(value)))
 }
 
 fn value(s: &str) -> IResult<&str, Value> {
@@ -78,6 +78,15 @@ mod test {
                     rhs: Packet(Value::List(vec![])),
                 }])
             ))
+        );
+    }
+
+    #[test]
+    fn parse_bad_packet_start() {
+        let error = packet("5").err();
+        assert!(
+            error.is_some(),
+            "doesn't start with a '[', so an error should be returned"
         );
     }
 }
