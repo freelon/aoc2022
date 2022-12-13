@@ -3,7 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::i32;
 use nom::IResult;
 use nom::multi::separated_list0;
-use nom::sequence::tuple;
+use nom::sequence::{delimited, separated_pair};
 
 use crate::days::day13::{Packet, Pair, Signal, Value};
 
@@ -12,7 +12,7 @@ pub(super) fn signal(s: &str) -> IResult<&str, Signal> {
 }
 
 fn pair(s: &str) -> IResult<&str, Pair> {
-    tuple((packet, tag("\n"), packet))(s).map(|(rem, (lhs, _, rhs))| (rem, Pair { lhs, rhs }))
+    separated_pair(packet, tag("\n"), packet)(s).map(|(rem, (lhs, rhs))| (rem, Pair { lhs, rhs }))
 }
 
 fn packet(s: &str) -> IResult<&str, Packet> {
@@ -28,8 +28,8 @@ fn int(s: &str) -> IResult<&str, Value> {
 }
 
 fn list(s: &str) -> IResult<&str, Value> {
-    tuple((tag("["), separated_list0(tag(","), value), tag("]")))(s)
-        .map(|(rem, (_, values, _))| (rem, Value::List(values)))
+    delimited(tag("["), separated_list0(tag(","), value), tag("]"))(s)
+        .map(|(rem, values)| (rem, Value::List(values)))
 }
 
 #[cfg(test)]
