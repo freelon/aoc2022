@@ -1,7 +1,6 @@
-use std::collections::HashMap;
+use std::fmt::{Debug, Display, Formatter, Write};
 
 use itertools::Itertools;
-use rustc_hash::FxHashMap;
 
 use Type::*;
 
@@ -15,38 +14,154 @@ struct Day14 {
     input: String,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
 enum Type {
     Sand,
     Rock,
+    Air,
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let c = match self {
+            Sand => 'o',
+            Rock => '#',
+            Air => ' ',
+        };
+        f.write_char(c)
+    }
 }
 
 type P = (i32, i32);
+
+#[derive(Debug)]
+struct Map<T: Copy> {
+    inner: Vec<T>,
+    x_offset: i32,
+    y_offset: i32,
+    width: i32,
+    height: i32,
+}
+
+impl<T> Map<T>
+    where
+        T: Copy + Debug,
+{
+    fn index(&self, p: &P) -> usize {
+        ((p.1 + self.y_offset) * self.width + (p.0 + self.x_offset)) as usize
+    }
+
+    fn insert(&mut self, p: P, t: T) {
+        let idx = self.index(&p);
+        self.inner[idx] = t;
+    }
+
+    fn index_to_position(&self, idx: usize) -> P {
+        let x = idx as i32 % self.width;
+        let y = idx as i32 / self.width;
+        (x - self.x_offset, y - self.y_offset)
+    }
+
+    fn get(&self, p: &P) -> Option<&T> {
+        if self.contains_pos(p) {
+            Some(&self.inner[self.index(p)])
+        } else {
+            None
+        }
+    }
+
+    fn contains_pos(&self, p: &P) -> bool {
+        (p.0 + self.x_offset) >= 0
+            && (p.0 + self.x_offset <= self.width)
+            && (p.1 + self.y_offset) >= 0
+            && (p.1 + self.y_offset <= self.height)
+    }
+
+    fn fields(&self) -> Vec<(P, &T)> {
+        self.inner
+            .iter()
+            .enumerate()
+            .map(|(index, value)| (self.index_to_position(index), value))
+            .collect_vec()
+    }
+
+    fn from(contents: &[(P, T)], default: T, x_margin: u32, y_margin: u32) -> Self {
+        let x_margin = x_margin as i32;
+        let y_margin = y_margin as i32;
+        let x_min = contents.iter().min_by_key(|(it, _)| it.0).unwrap().0.0;
+        let x_max = contents.iter().max_by_key(|(it, _)| it.0).unwrap().0.0;
+        let y_min = contents.iter().min_by_key(|(it, _)| it.1).unwrap().0.1;
+        let y_max = contents.iter().max_by_key(|(it, _)| it.1).unwrap().0.1;
+
+        let width = (x_max - x_min + 1 + 2 * x_margin) as usize;
+        let height = (y_max - y_min + 1 + 2 * y_margin) as usize;
+
+        let inner = vec![default; width * height];
+        let x_offset = -(x_min - x_margin);
+        let y_offset = -(y_min - y_margin);
+
+        let mut map = Map {
+            inner,
+            x_offset,
+            y_offset,
+            width: width as i32,
+            height: height as i32,
+        };
+
+        for (p, t) in contents {
+            map.insert(*p, *t);
+        }
+        map
+    }
+}
+
+impl<T> Display for Map<T>
+    where
+        T: Display + Copy,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for (idx, t) in self.inner.iter().enumerate() {
+            if idx % self.width as usize == 0 {
+                f.write_char('\n')?;
+            }
+            f.write_fmt(format_args!("{t}"))?
+        }
+        Ok(())
+    }
+}
 
 impl Day for Day14 {
     fn part1(&self) -> String {
         let mut map = self.load();
         play(&mut map);
-        map.values().filter(|it| **it == Sand).count().to_string()
+        map.fields()
+            .iter()
+            .filter(|(_, t)| **t == Sand)
+            .count()
+            .to_string()
     }
     fn part2(&self) -> String {
         let mut map = self.load();
         play2(&mut map);
-        map.values().filter(|it| **it == Sand).count().to_string()
+        map.fields()
+            .iter()
+            .filter(|(_, t)| **t == Sand)
+            .count()
+            .to_string()
     }
 }
 
-fn play(map: &mut FxHashMap<P, Type>) {
-    let depth = *map.keys().map(|(_, y)| y).max().unwrap();
+fn play(map: &mut Map<Type>) {
+    let depth = *map.fields().iter().map(|((_, y), _)| y).max().unwrap();
     'outer: loop {
         let mut s = (500, 0);
         loop {
             let d = directions(s);
-            let d = d.into_iter().find(|next| !map.contains_key(next));
+            let d = d.into_iter().find(|next| map.get(next) == Some(&Air));
             if let Some(next) = d {
                 s = next;
 
-                if s.1 > depth {
+                if s.1 >= depth {
                     // nowhere else to go
                     break 'outer;
                 }
@@ -58,15 +173,21 @@ fn play(map: &mut FxHashMap<P, Type>) {
     }
 }
 
-fn play2(map: &mut FxHashMap<P, Type>) {
-    let depth = *map.keys().map(|(_, y)| y).max().unwrap();
+fn play2(map: &mut Map<Type>) {
+    let lowest_rock = *map
+        .fields()
+        .iter()
+        .filter(|(_, t)| **t == Rock)
+        .map(|((_, y), _)| y)
+        .max()
+        .unwrap();
     'outer: loop {
         let mut s = (500, 0);
         loop {
             let d = directions(s);
             let d = d
                 .into_iter()
-                .find(|next| !map.contains_key(next) && next.1 < depth + 2);
+                .find(|next| map.get(next) == Some(&Air) && next.1 < lowest_rock + 2);
             if let Some(next) = d {
                 s = next;
             } else {
@@ -87,8 +208,8 @@ fn directions(p: P) -> [P; 3] {
 }
 
 impl Day14 {
-    fn load(&self) -> FxHashMap<P, Type> {
-        let mut map = FxHashMap::<P, Type>::default();
+    fn load(&self) -> Map<Type> {
+        let mut start = vec![];
         for line in self.input.lines() {
             let coordinates: Vec<P> = line
                 .split(" -> ")
@@ -103,36 +224,14 @@ impl Day14 {
                 let mut xc = xa;
                 let mut yc = ya;
                 while (xc, yc) != (xb, yb) {
-                    map.insert((xc, yc), Rock);
+                    start.push(((xc, yc), Rock));
                     xc += dx;
                     yc += dy;
                 }
-                map.insert((xc, yc), Rock);
+                start.push(((xc, yc), Rock));
             }
         }
-        map
-    }
-}
-
-#[allow(dead_code)]
-fn print_map(map: &HashMap<P, Type>) {
-    let x_min = map.keys().min_by_key(|it| it.0).unwrap().0;
-    let x_max = map.keys().max_by_key(|it| it.0).unwrap().0;
-    let y_min = map.keys().min_by_key(|it| it.1).unwrap().1;
-    let y_max = map.keys().max_by_key(|it| it.1).unwrap().1;
-
-    for y in y_min..=y_max {
-        for x in x_min..=x_max {
-            let c = match map.get(&(x, y)) {
-                Some(t) => match t {
-                    Sand => 'o',
-                    Rock => '#',
-                },
-                None => '.',
-            };
-            print!("{c}");
-        }
-        println!();
+        Map::from(&start, Air, 500, 20)
     }
 }
 
