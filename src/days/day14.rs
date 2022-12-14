@@ -44,8 +44,8 @@ struct Map<T: Copy> {
 }
 
 impl<T> Map<T>
-    where
-        T: Copy + Debug,
+where
+    T: Copy + Debug + Eq,
 {
     fn index(&self, p: &P) -> usize {
         ((p.1 + self.y_offset) * self.width + (p.0 + self.x_offset)) as usize
@@ -77,12 +77,13 @@ impl<T> Map<T>
             && (p.1 + self.y_offset <= self.height)
     }
 
-    fn fields(&self) -> Vec<(P, &T)> {
+    fn first_rev(&self, needle: T) -> Option<P> {
         self.inner
             .iter()
             .enumerate()
-            .map(|(index, value)| (self.index_to_position(index), value))
-            .collect_vec()
+            .rev()
+            .find(|(_, it)| **it == needle)
+            .map(|(index, _)| self.index_to_position(index))
     }
 
     fn from(contents: &[(P, T)], default: T, x_margin: u32, y_margin: u32) -> Self {
@@ -132,27 +133,26 @@ impl<T> Display for Map<T>
 
 impl Day for Day14 {
     fn part1(&self) -> String {
-        let mut map = self.load();
-        play(&mut map);
-        map.fields()
-            .iter()
-            .filter(|(_, t)| **t == Sand)
-            .count()
-            .to_string()
+        let mut result = String::new();
+        for _ in 0..1000 {
+            let mut map = self.load();
+            result = play(&mut map).to_string();
+        }
+        result
     }
     fn part2(&self) -> String {
-        let mut map = self.load();
-        play2(&mut map);
-        map.fields()
-            .iter()
-            .filter(|(_, t)| **t == Sand)
-            .count()
-            .to_string()
+        let mut result = String::new();
+        for _ in 0..1000 {
+            let mut map = self.load();
+            result = play2(&mut map).to_string();
+        }
+        result
     }
 }
 
-fn play(map: &mut Map<Type>) {
-    let depth = *map.fields().iter().map(|((_, y), _)| y).max().unwrap();
+fn play(map: &mut Map<Type>) -> usize {
+    let depth = map.first_rev(Rock).unwrap().1;
+    let mut stopped_sand = 0;
     'outer: loop {
         let mut s = (500, 0);
         loop {
@@ -167,20 +167,17 @@ fn play(map: &mut Map<Type>) {
                 }
             } else {
                 map.insert(s, Sand);
+                stopped_sand += 1;
                 continue 'outer;
             }
         }
     }
+    stopped_sand
 }
 
-fn play2(map: &mut Map<Type>) {
-    let lowest_rock = *map
-        .fields()
-        .iter()
-        .filter(|(_, t)| **t == Rock)
-        .map(|((_, y), _)| y)
-        .max()
-        .unwrap();
+fn play2(map: &mut Map<Type>) -> usize {
+    let lowest_rock = map.first_rev(Rock).unwrap().1;
+    let mut stopped_sand = 0;
     'outer: loop {
         let mut s = (500, 0);
         loop {
@@ -192,6 +189,7 @@ fn play2(map: &mut Map<Type>) {
                 s = next;
             } else {
                 map.insert(s, Sand);
+                stopped_sand += 1;
 
                 if s == (500, 0) {
                     break 'outer;
@@ -201,6 +199,7 @@ fn play2(map: &mut Map<Type>) {
             }
         }
     }
+    stopped_sand
 }
 
 fn directions(p: P) -> [P; 3] {
