@@ -12,3 +12,5 @@ derive_more = "0.99.17"
 itertools = "0.10.5"
 nom = "7.1.1"
 reqwest = { version = "0.11.13", features = ["blocking"] }
+rustc-hash = "1.1.0"
+

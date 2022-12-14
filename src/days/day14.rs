@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use itertools::Itertools;
+use rustc_hash::FxHashMap;
 
 use Type::*;
 
@@ -28,7 +29,6 @@ impl Day for Day14 {
         play(&mut map);
         map.values().filter(|it| **it == Sand).count().to_string()
     }
-
     fn part2(&self) -> String {
         let mut map = self.load();
         play2(&mut map);
@@ -36,13 +36,13 @@ impl Day for Day14 {
     }
 }
 
-fn play(map: &mut HashMap<P, Type>) {
+fn play(map: &mut FxHashMap<P, Type>) {
     let depth = *map.keys().map(|(_, y)| y).max().unwrap();
     'outer: loop {
         let mut s = (500, 0);
         loop {
             let d = directions(s);
-            let d = d.into_iter().find(|next| map.get(next).is_none());
+            let d = d.into_iter().find(|next| !map.contains_key(next));
             if let Some(next) = d {
                 s = next;
 
@@ -58,7 +58,7 @@ fn play(map: &mut HashMap<P, Type>) {
     }
 }
 
-fn play2(map: &mut HashMap<P, Type>) {
+fn play2(map: &mut FxHashMap<P, Type>) {
     let depth = *map.keys().map(|(_, y)| y).max().unwrap();
     'outer: loop {
         let mut s = (500, 0);
@@ -66,7 +66,7 @@ fn play2(map: &mut HashMap<P, Type>) {
             let d = directions(s);
             let d = d
                 .into_iter()
-                .find(|next| map.get(next).is_none() && next.1 < depth + 2);
+                .find(|next| !map.contains_key(next) && next.1 < depth + 2);
             if let Some(next) = d {
                 s = next;
             } else {
@@ -82,13 +82,13 @@ fn play2(map: &mut HashMap<P, Type>) {
     }
 }
 
-fn directions(p: P) -> Vec<P> {
-    vec![(p.0, p.1 + 1), (p.0 - 1, p.1 + 1), (p.0 + 1, p.1 + 1)]
+fn directions(p: P) -> [P; 3] {
+    [(p.0, p.1 + 1), (p.0 - 1, p.1 + 1), (p.0 + 1, p.1 + 1)]
 }
 
 impl Day14 {
-    fn load(&self) -> HashMap<P, Type> {
-        let mut map = HashMap::<P, Type>::new();
+    fn load(&self) -> FxHashMap<P, Type> {
+        let mut map = FxHashMap::<P, Type>::default();
         for line in self.input.lines() {
             let coordinates: Vec<P> = line
                 .split(" -> ")
