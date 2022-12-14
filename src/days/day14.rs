@@ -62,12 +62,18 @@ where
         (x - self.x_offset, y - self.y_offset)
     }
 
-    fn get(&self, p: &P) -> Option<&T> {
-        if self.contains_pos(p) {
-            Some(&self.inner[self.index(p)])
-        } else {
-            None
+    fn get(&self, p: &P) -> &T {
+        if !self.contains_pos(p) {
+            panic!(
+                "{:?} is not within bounds (x: {}..={}, y: {}..={})",
+                p,
+                self.x_offset,
+                self.x_offset + self.width,
+                self.y_offset,
+                self.y_offset + self.height
+            );
         }
+        &self.inner[self.index(p)]
     }
 
     fn contains_pos(&self, p: &P) -> bool {
@@ -157,7 +163,7 @@ fn play(map: &mut Map<Type>) -> usize {
         let mut s = (500, 0);
         loop {
             let d = directions(s);
-            let d = d.into_iter().find(|next| map.get(next) == Some(&Air));
+            let d = d.into_iter().find(|next| map.get(next) == &Air);
             if let Some(next) = d {
                 s = next;
 
@@ -184,7 +190,7 @@ fn play2(map: &mut Map<Type>) -> usize {
             let d = directions(s);
             let d = d
                 .into_iter()
-                .find(|next| map.get(next) == Some(&Air) && next.1 < lowest_rock + 2);
+                .find(|next| map.get(next) == &Air && next.1 < lowest_rock + 2);
             if let Some(next) = d {
                 s = next;
             } else {
