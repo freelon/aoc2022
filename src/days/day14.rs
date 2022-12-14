@@ -137,10 +137,12 @@ impl<T> Display for Map<T>
     }
 }
 
+const RUNS: usize = 1;
+
 impl Day for Day14 {
     fn part1(&self) -> String {
         let mut result = String::new();
-        for _ in 0..1000 {
+        for _ in 0..RUNS {
             let mut map = self.load();
             result = play(&mut map).to_string();
         }
@@ -148,7 +150,7 @@ impl Day for Day14 {
     }
     fn part2(&self) -> String {
         let mut result = String::new();
-        for _ in 0..1000 {
+        for _ in 0..RUNS {
             let mut map = self.load();
             result = play2(&mut map).to_string();
         }
@@ -159,12 +161,17 @@ impl Day for Day14 {
 fn play(map: &mut Map<Type>) -> usize {
     let depth = map.first_rev(Rock).unwrap().1;
     let mut stopped_sand = 0;
+    // All sand particles follow the same deterministic path. Therefore each particle follows its
+    // predecessor's path until the second last step. We can use that to omit a lot of recalculating
+    // the same path again and again.
+    let mut lasts: Vec<P> = vec![];
     'outer: loop {
-        let mut s = (500, 0);
+        let mut s = lasts.pop().unwrap_or((500, 0));
         loop {
             let d = directions(s);
             let d = d.into_iter().find(|next| map.get(next) == &Air);
             if let Some(next) = d {
+                lasts.push(s);
                 s = next;
 
                 if s.1 >= depth {
@@ -184,14 +191,16 @@ fn play(map: &mut Map<Type>) -> usize {
 fn play2(map: &mut Map<Type>) -> usize {
     let lowest_rock = map.first_rev(Rock).unwrap().1;
     let mut stopped_sand = 0;
+    let mut lasts: Vec<P> = vec![];
     'outer: loop {
-        let mut s = (500, 0);
+        let mut s = lasts.pop().unwrap_or((500, 0));
         loop {
             let d = directions(s);
             let d = d
                 .into_iter()
                 .find(|next| map.get(next) == &Air && next.1 < lowest_rock + 2);
             if let Some(next) = d {
+                lasts.push(s);
                 s = next;
             } else {
                 map.insert(s, Sand);
