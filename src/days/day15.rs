@@ -1,6 +1,7 @@
 use itertools::Itertools;
 
 use crate::days::Day;
+use crate::days::day15::Line::{End, Start};
 
 pub fn create(input: String) -> Box<dyn Day> {
     Box::new(Day15 {
@@ -18,6 +19,12 @@ struct Day15 {
 
 type P = (i64, i64);
 
+#[derive(Ord, PartialOrd, PartialEq, Eq)]
+enum Line {
+    Start,
+    End,
+}
+
 impl Day for Day15 {
     fn part1(&self) -> String {
         let sb: Vec<(P, P)> = self
@@ -32,23 +39,48 @@ impl Day for Day15 {
             })
             .collect_vec();
 
-        let max_distance = sb.iter().map(|(s, b)| manhattan(s, b)).max().unwrap();
-        let sensor_x_min = sb.iter().map(|(s, _)| s.0).min().unwrap();
-        let sensor_x_max = sb.iter().map(|(s, _)| s.0).max().unwrap();
-
-        (sensor_x_min - max_distance..=sensor_x_max + max_distance)
-            .filter(|&x| {
-                sb.iter().any(|(s, b)| {
-                    let spot = (x, self.part1_row);
-                    let d_field = manhattan(s, &spot);
-                    let d_closest_beacon = manhattan(s, b);
-                    let too_close_to_signal = d_field <= d_closest_beacon;
-                    let is_on_beacon = spot == *b;
-                    too_close_to_signal && !is_on_beacon
-                })
+        let mut intervals_on_target_row = sb
+            .iter()
+            .flat_map(|(s, b)| {
+                let db = manhattan(s, b);
+                let dy = (self.part1_row - s.1).abs();
+                let side_wise = db - dy;
+                if side_wise >= 0 {
+                    vec![(s.0 - side_wise, Start), (s.0 + side_wise, End)]
+                } else {
+                    vec![]
+                }
             })
-            .count()
-            .to_string()
+            .collect_vec();
+
+        intervals_on_target_row.sort();
+
+        // sweep line
+        let mut positions_in_range = 0;
+        let mut in_range = 0;
+        let mut started_in_range = 0;
+        for (x, ls) in intervals_on_target_row {
+            if ls == Start {
+                in_range += 1;
+                if in_range == 1 {
+                    started_in_range = x;
+                }
+            } else {
+                in_range -= 1;
+                if in_range == 0 {
+                    positions_in_range += x - started_in_range + 1;
+                }
+            }
+        }
+
+        positions_in_range -= sb
+            .iter()
+            .map(|(_, b)| *b)
+            .unique()
+            .filter(|(_, b_y)| *b_y == self.part1_row)
+            .count() as i64;
+
+        positions_in_range.to_string()
     }
 
     fn part2(&self) -> String {
