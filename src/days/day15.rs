@@ -6,15 +6,17 @@ pub fn create(input: String) -> Box<dyn Day> {
     Box::new(Day15 {
         input,
         part1_row: 2000000,
+        max: 4194304, //4000000,
     })
 }
 
 struct Day15 {
     input: String,
-    part1_row: i32,
+    part1_row: i64,
+    max: i64,
 }
 
-type P = (i32, i32);
+type P = (i64, i64);
 
 impl Day for Day15 {
     fn part1(&self) -> String {
@@ -28,7 +30,6 @@ impl Day for Day15 {
                     (v[13].parse().unwrap(), v[16].parse().unwrap()),
                 )
             })
-            .inspect(|x| println!("{:?}", x))
             .collect_vec();
 
         let max_distance = sb.iter().map(|(s, b)| manhattan(s, b)).max().unwrap();
@@ -51,11 +52,98 @@ impl Day for Day15 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let sb: Vec<(P, P)> = self
+            .input
+            .lines()
+            .map(|line| line.split(&[',', ' ', '=', ':']).collect_vec())
+            .map(|v| {
+                (
+                    (v[3].parse().unwrap(), v[6].parse().unwrap()),
+                    (v[13].parse().unwrap(), v[16].parse().unwrap()),
+                )
+            })
+            .collect_vec();
+
+        let sensor_and_distances = sb.iter().map(|(a, b)| (*a, manhattan(a, b))).collect_vec();
+        let beacons = sb.iter().map(|(_, b)| *b).collect_vec();
+
+        let spot = rec(
+            (0, 0),
+            (self.max, self.max),
+            &sensor_and_distances,
+            &beacons,
+        )
+            .expect("there must be a solution");
+
+        (spot.0 * 4000000 + spot.1).to_string()
     }
 }
 
-fn manhattan(p1: &P, p2: &P) -> i32 {
+const MAX_COORDINATE: i64 = 4000000;
+
+fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Option<P> {
+    if from == to {
+        return if sensors_and_distances.iter().all(|(signal, d)| {
+            let spot = from;
+            let d_field = manhattan(signal, &spot);
+            d_field > *d
+        }) && !beacons.contains(&from)
+        {
+            Some(from)
+        } else {
+            None
+        };
+    }
+
+    let corners = [from, (from.0, to.1), (to.0, from.1), to];
+
+    if corners
+        .iter()
+        .all(|corner| corner.0 > MAX_COORDINATE || corner.1 > MAX_COORDINATE)
+    {
+        return None;
+    }
+
+    if all_corners_covered_by_one_sensor(sensors_and_distances, &corners) {
+        return None;
+    }
+
+    let m = ((from.0 + to.0) / 2, (from.1 + to.1) / 2);
+    if let Some(result) = rec(from, m, sensors_and_distances, beacons) {
+        return Some(result);
+    }
+    if let Some(result) = rec(
+        (m.0 + 1, from.1),
+        (to.0, m.1),
+        sensors_and_distances,
+        beacons,
+    ) {
+        return Some(result);
+    }
+    if let Some(result) = rec(
+        (from.0, m.1 + 1),
+        (m.0, to.1),
+        sensors_and_distances,
+        beacons,
+    ) {
+        return Some(result);
+    }
+    if let Some(result) = rec((m.0 + 1, m.1 + 1), to, sensors_and_distances, beacons) {
+        return Some(result);
+    }
+
+    None
+}
+
+fn all_corners_covered_by_one_sensor(sensors_and_distances: &[(P, i64)], corners: &[P; 4]) -> bool {
+    sensors_and_distances.iter().any(|(sensor, d_sb)| {
+        corners
+            .iter()
+            .all(|corner| manhattan(sensor, corner) <= *d_sb)
+    })
+}
+
+fn manhattan(p1: &P, p2: &P) -> i64 {
     (p2.0 - p1.0).abs() + (p2.1 - p1.1).abs()
 }
 
@@ -70,9 +158,23 @@ mod test {
             Day15 {
                 input: INPUT.to_string(),
                 part1_row: 10,
+                max: 20,
             }
                 .part1(),
             "26"
+        );
+    }
+
+    #[test]
+    fn part2() {
+        assert_eq!(
+            Day15 {
+                input: INPUT.to_string(),
+                part1_row: 10,
+                max: 32,
+            }
+                .part2(),
+            "56000011"
         );
     }
 
