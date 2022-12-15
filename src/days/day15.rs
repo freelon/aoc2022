@@ -98,14 +98,12 @@ impl Day for Day15 {
             })
             .collect_vec();
 
-        let sensor_and_distances = sb.iter().map(|(a, b)| (*a, manhattan(a, b))).collect_vec();
-        let beacons = sb.iter().map(|(_, b)| *b).collect_vec();
+        let sensors_and_distances = sb.iter().map(|(a, b)| (*a, manhattan(a, b))).collect_vec();
 
         let spot = rec(
             (0, 0),
             (self.max_two_potency, self.max_two_potency),
-            &sensor_and_distances,
-            &beacons,
+            &sensors_and_distances,
             self.search_max,
         )
             .expect("there must be a solution");
@@ -114,20 +112,13 @@ impl Day for Day15 {
     }
 }
 
-fn rec(
-    from: P,
-    to: P,
-    sensors_and_distances: &[(P, i64)],
-    beacons: &[P],
-    search_max: i64,
-) -> Option<P> {
+fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], search_max: i64) -> Option<P> {
     if from == to {
         return if sensors_and_distances.iter().all(|(signal, d)| {
             let spot = from;
             let d_field = manhattan(signal, &spot);
             d_field > *d
-        }) && !beacons.contains(&from)
-        {
+        }) {
             Some(from)
         } else {
             None
@@ -148,14 +139,13 @@ fn rec(
     }
 
     let m = ((from.0 + to.0) / 2, (from.1 + to.1) / 2);
-    if let Some(result) = rec(from, m, sensors_and_distances, beacons, search_max) {
+    if let Some(result) = rec(from, m, sensors_and_distances, search_max) {
         return Some(result);
     }
     if let Some(result) = rec(
         (m.0 + 1, from.1),
         (to.0, m.1),
         sensors_and_distances,
-        beacons,
         search_max,
     ) {
         return Some(result);
@@ -164,18 +154,11 @@ fn rec(
         (from.0, m.1 + 1),
         (m.0, to.1),
         sensors_and_distances,
-        beacons,
         search_max,
     ) {
         return Some(result);
     }
-    if let Some(result) = rec(
-        (m.0 + 1, m.1 + 1),
-        to,
-        sensors_and_distances,
-        beacons,
-        search_max,
-    ) {
+    if let Some(result) = rec((m.0 + 1, m.1 + 1), to, sensors_and_distances, search_max) {
         return Some(result);
     }
 
