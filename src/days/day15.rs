@@ -7,14 +7,16 @@ pub fn create(input: String) -> Box<dyn Day> {
     Box::new(Day15 {
         input,
         part1_row: 2000000,
-        max: 4194304, //4000000,
+        max_two_potency: 4194304,
+        search_max: 4000000,
     })
 }
 
 struct Day15 {
     input: String,
     part1_row: i64,
-    max: i64,
+    max_two_potency: i64,
+    search_max: i64,
 }
 
 type P = (i64, i64);
@@ -101,9 +103,10 @@ impl Day for Day15 {
 
         let spot = rec(
             (0, 0),
-            (self.max, self.max),
+            (self.max_two_potency, self.max_two_potency),
             &sensor_and_distances,
             &beacons,
+            self.search_max,
         )
             .expect("there must be a solution");
 
@@ -111,9 +114,13 @@ impl Day for Day15 {
     }
 }
 
-const MAX_COORDINATE: i64 = 4000000;
-
-fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Option<P> {
+fn rec(
+    from: P,
+    to: P,
+    sensors_and_distances: &[(P, i64)],
+    beacons: &[P],
+    search_max: i64,
+) -> Option<P> {
     if from == to {
         return if sensors_and_distances.iter().all(|(signal, d)| {
             let spot = from;
@@ -131,7 +138,7 @@ fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Opt
 
     if corners
         .iter()
-        .all(|corner| corner.0 > MAX_COORDINATE || corner.1 > MAX_COORDINATE)
+        .all(|corner| corner.0 > search_max || corner.1 > search_max)
     {
         return None;
     }
@@ -141,7 +148,7 @@ fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Opt
     }
 
     let m = ((from.0 + to.0) / 2, (from.1 + to.1) / 2);
-    if let Some(result) = rec(from, m, sensors_and_distances, beacons) {
+    if let Some(result) = rec(from, m, sensors_and_distances, beacons, search_max) {
         return Some(result);
     }
     if let Some(result) = rec(
@@ -149,6 +156,7 @@ fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Opt
         (to.0, m.1),
         sensors_and_distances,
         beacons,
+        search_max,
     ) {
         return Some(result);
     }
@@ -157,10 +165,17 @@ fn rec(from: P, to: P, sensors_and_distances: &[(P, i64)], beacons: &[P]) -> Opt
         (m.0, to.1),
         sensors_and_distances,
         beacons,
+        search_max,
     ) {
         return Some(result);
     }
-    if let Some(result) = rec((m.0 + 1, m.1 + 1), to, sensors_and_distances, beacons) {
+    if let Some(result) = rec(
+        (m.0 + 1, m.1 + 1),
+        to,
+        sensors_and_distances,
+        beacons,
+        search_max,
+    ) {
         return Some(result);
     }
 
@@ -190,7 +205,8 @@ mod test {
             Day15 {
                 input: INPUT.to_string(),
                 part1_row: 10,
-                max: 20,
+                max_two_potency: 20,
+                search_max: 20,
             }
                 .part1(),
             "26"
@@ -203,7 +219,8 @@ mod test {
             Day15 {
                 input: INPUT.to_string(),
                 part1_row: 10,
-                max: 32,
+                max_two_potency: 32,
+                search_max: 20,
             }
                 .part2(),
             "56000011"
