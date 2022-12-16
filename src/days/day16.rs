@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::fmt::{Debug, Formatter};
 
 use itertools::Itertools;
 
@@ -10,6 +11,30 @@ pub fn create(input: String) -> Box<dyn Day> {
 
 struct Day16 {
     input: String,
+}
+
+struct State<'a> {
+    position: &'a str,
+    open_valves: Vec<&'a str>,
+    released: usize,
+    remaining_time: usize,
+    rates: &'a HashMap<&'a str, usize>,
+}
+
+impl<'a> Debug for State<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "position:{}, released:{}, remaining_time:{}, open:{:?}",
+            &self.position, self.released, self.remaining_time, self.open_valves
+        )
+    }
+}
+
+impl<'a> State<'a> {
+    fn releases(&self) -> usize {
+        self.open_valves.iter().map(|valve| self.rates[valve]).sum()
+    }
 }
 
 impl Day for Day16 {
@@ -31,12 +56,95 @@ impl Day for Day16 {
             links.insert(name, connections);
             rates.insert(name, rate);
         });
-        format!("")
+
+        let important_valves = rates
+            .iter()
+            .filter(|(v, r)| **v == "AA" || **r > 0)
+            .map(|(v, _)| *v)
+            .collect_vec();
+        let distances = apsp(&links, &important_valves);
+
+        let start = State {
+            position: "AA",
+            open_valves: vec!["AA"],
+            remaining_time: 30,
+            released: 0,
+            rates: &rates,
+        };
+
+        best_gain(&distances, start).to_string()
     }
 
     fn part2(&self) -> String {
         format!("")
     }
+}
+
+fn best_gain(distances: &HashMap<&str, Vec<(&str, usize)>>, state: State) -> usize {
+    //println!("{:?}", state);
+    distances[&state.position]
+        .iter()
+        .filter(|(destination, distance)| {
+            !(state.open_valves.contains(destination) || distance + 1 > state.remaining_time)
+        })
+        .map(|(dest, dist)| {
+            let mut valves = state.open_valves.clone();
+            valves.push(*dest);
+            let new_state = State {
+                position: *dest,
+                remaining_time: state.remaining_time - (*dist + 1),
+                released: state.released + state.releases() * (*dist + 1),
+                open_valves: valves,
+                ..state
+            };
+            best_gain(distances, new_state)
+        })
+        .max()
+        .or_else(|| {
+            let releases = state.releases() * state.remaining_time;
+            Some(state.released + releases)
+        })
+        .unwrap()
+}
+
+fn apsp<'a>(
+    links: &HashMap<&str, Vec<&str>>,
+    main_nodes: &'a [&str],
+) -> HashMap<&'a str, Vec<(&'a str, usize)>> {
+    main_nodes
+        .iter()
+        .map(|a| {
+            let v = main_nodes
+                .iter()
+                .filter(|b| a != *b)
+                .map(|b| (*b, distance(*a, *b, links)))
+                .collect_vec();
+            (*a, v)
+        })
+        .collect()
+}
+
+fn distance(start: &str, goal: &str, links: &HashMap<&str, Vec<&str>>) -> usize {
+    let mut visited = HashSet::new();
+    let mut open = VecDeque::new();
+    open.push_back((start, 0));
+    while let Some((current, distance)) = open.pop_front() {
+        if current == goal {
+            return distance;
+        }
+
+        if visited.contains(&current) {
+            continue;
+        }
+
+        visited.insert(current);
+
+        for &link in &links[&current] {
+            open.push_back((link, distance + 1));
+        }
+    }
+
+    unreachable!("no path found")
 }
 
 #[cfg(test)]
