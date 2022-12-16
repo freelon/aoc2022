@@ -27,7 +27,11 @@ impl<'a> Debug for State<'a> {
         write!(
             f,
             "position:{}, released:{}, remaining_time:{},remaining_valves:{:?}, open:{:?}",
-            &self.position, self.released, self.remaining_time, self.remaining_valves, self.open_valves
+            &self.position,
+            self.released,
+            self.remaining_time,
+            self.remaining_valves,
+            self.open_valves
         )
     }
 }
@@ -63,25 +67,94 @@ impl Day for Day16 {
             .filter(|(v, r)| **v == "AA" || **r > 0)
             .map(|(v, _)| *v)
             .collect_vec();
-        println!("{:?}", important_valves);
         let distances = apsp(&links, &important_valves);
 
         let start = State {
             position: "AA",
-            remaining_valves: rates.iter().filter(|(_, r)| **r > 0).map(|(n, _)| *n).collect_vec(),
+            remaining_valves: rates
+                .iter()
+                .filter(|(_, r)| **r > 0)
+                .map(|(n, _)| *n)
+                .collect_vec(),
             open_valves: vec![],
             remaining_time: 30,
             released: 0,
             rates: &rates,
         };
 
-        println!("{:?}", start);
-
         best_gain(&distances, start).to_string()
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let mut links: HashMap<&str, Vec<&str>> = HashMap::new();
+        let mut rates: HashMap<&str, usize> = HashMap::new();
+        self.input.lines().for_each(|line| {
+            let name = line.split(' ').nth(1).unwrap();
+            let rate: usize = line.split(&['=', ';']).nth(1).unwrap().parse().unwrap();
+            let connections = if line.find("valves").is_some() {
+                line.split_once("valves ")
+                    .unwrap()
+                    .1
+                    .split(", ")
+                    .collect_vec()
+            } else {
+                vec![line.split(' ').last().unwrap()]
+            };
+            links.insert(name, connections);
+            rates.insert(name, rate);
+        });
+
+        let important_valves = rates
+            .iter()
+            .filter(|(v, r)| **v == "AA" || **r > 0)
+            .map(|(v, _)| *v)
+            .collect_vec();
+        let distances = apsp(&links, &important_valves);
+
+        let important_valves = rates
+            .iter()
+            .filter(|(_, r)| **r > 0)
+            .map(|(n, _)| *n)
+            .collect_vec();
+
+        let all_my_valves = important_valves.clone();
+
+        all_my_valves
+            .into_iter()
+            .powerset()
+            .filter(|set| set.len() > 0)
+            .map(|my_valves| {
+                let elephant_valves = important_valves
+                    .iter()
+                    .filter(|it| !my_valves.contains(it))
+                    .copied()
+                    .collect_vec();
+
+                let my_start = State {
+                    position: "AA",
+                    remaining_valves: my_valves,
+                    open_valves: vec![],
+                    remaining_time: 26,
+                    released: 0,
+                    rates: &rates,
+                };
+                let my_score = best_gain(&distances, my_start);
+
+                let elephant_start = State {
+                    position: "AA",
+                    remaining_valves: elephant_valves,
+                    open_valves: vec![],
+                    remaining_time: 26,
+                    released: 0,
+                    rates: &rates,
+                };
+                let elephant_score = best_gain(&distances, elephant_start);
+
+                my_score + elephant_score
+            })
+            .max()
+            .unwrap()
+            .to_string()
     }
 }
 
@@ -90,6 +163,12 @@ fn best_gain(distances: &HashMap<&str, HashMap<&str, usize>>, state: State) -> u
         .remaining_valves
         .iter()
         .filter(|destination| {
+            if !distances.contains_key(&state.position) {
+                panic!("missing state {}", state.position)
+            }
+            if !distances[&state.position].contains_key(*destination) {
+                panic!("missing destination {}", destination)
+            }
             let distance = distances[&state.position][*destination];
             distance + 1 <= state.remaining_time
         })
@@ -168,6 +247,14 @@ mod test {
             input: INPUT.to_string(),
         };
         assert_eq!(day.part1(), "1651");
+    }
+
+    #[test]
+    fn part2() {
+        let day = Day16 {
+            input: INPUT.to_string(),
+        };
+        assert_eq!(day.part2(), "1707");
     }
 
     const INPUT: &str = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
