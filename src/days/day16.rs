@@ -15,6 +15,7 @@ struct Day16 {
 
 struct State<'a> {
     position: &'a str,
+    remaining_valves: Vec<&'a str>,
     open_valves: Vec<&'a str>,
     released: usize,
     remaining_time: usize,
@@ -25,8 +26,8 @@ impl<'a> Debug for State<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "position:{}, released:{}, remaining_time:{}, open:{:?}",
-            &self.position, self.released, self.remaining_time, self.open_valves
+            "position:{}, released:{}, remaining_time:{},remaining_valves:{:?}, open:{:?}",
+            &self.position, self.released, self.remaining_time, self.remaining_valves, self.open_valves
         )
     }
 }
@@ -62,15 +63,19 @@ impl Day for Day16 {
             .filter(|(v, r)| **v == "AA" || **r > 0)
             .map(|(v, _)| *v)
             .collect_vec();
+        println!("{:?}", important_valves);
         let distances = apsp(&links, &important_valves);
 
         let start = State {
             position: "AA",
-            open_valves: vec!["AA"],
+            remaining_valves: rates.iter().filter(|(_, r)| **r > 0).map(|(n, _)| *n).collect_vec(),
+            open_valves: vec![],
             remaining_time: 30,
             released: 0,
             rates: &rates,
         };
+
+        println!("{:?}", start);
 
         best_gain(&distances, start).to_string()
     }
@@ -80,20 +85,25 @@ impl Day for Day16 {
     }
 }
 
-fn best_gain(distances: &HashMap<&str, Vec<(&str, usize)>>, state: State) -> usize {
-    //println!("{:?}", state);
-    distances[&state.position]
+fn best_gain(distances: &HashMap<&str, HashMap<&str, usize>>, state: State) -> usize {
+    state
+        .remaining_valves
         .iter()
-        .filter(|(destination, distance)| {
-            !(state.open_valves.contains(destination) || distance + 1 > state.remaining_time)
+        .filter(|destination| {
+            let distance = distances[&state.position][*destination];
+            distance + 1 <= state.remaining_time
         })
-        .map(|(dest, dist)| {
+        .map(|dest| {
+            let dist = distances[&state.position][dest];
             let mut valves = state.open_valves.clone();
             valves.push(*dest);
+            let mut remaining_valves = state.remaining_valves.clone();
+            remaining_valves.retain(|v| v != dest);
             let new_state = State {
                 position: *dest,
-                remaining_time: state.remaining_time - (*dist + 1),
-                released: state.released + state.releases() * (*dist + 1),
+                remaining_valves,
+                remaining_time: state.remaining_time - (dist + 1),
+                released: state.released + state.releases() * (dist + 1),
                 open_valves: valves,
                 ..state
             };
@@ -110,7 +120,7 @@ fn best_gain(distances: &HashMap<&str, Vec<(&str, usize)>>, state: State) -> usi
 fn apsp<'a>(
     links: &HashMap<&str, Vec<&str>>,
     main_nodes: &'a [&str],
-) -> HashMap<&'a str, Vec<(&'a str, usize)>> {
+) -> HashMap<&'a str, HashMap<&'a str, usize>> {
     main_nodes
         .iter()
         .map(|a| {
@@ -118,7 +128,7 @@ fn apsp<'a>(
                 .iter()
                 .filter(|b| a != *b)
                 .map(|b| (*b, distance(*a, *b, links)))
-                .collect_vec();
+                .collect();
             (*a, v)
         })
         .collect()
