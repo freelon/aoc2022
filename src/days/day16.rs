@@ -49,7 +49,7 @@ impl Day for Day16 {
         self.input.lines().for_each(|line| {
             let name = line.split(' ').nth(1).unwrap();
             let rate: usize = line.split(&['=', ';']).nth(1).unwrap().parse().unwrap();
-            let connections = if line.find("valves").is_some() {
+            let connections = if line.contains("valves") {
                 line.split_once("valves ")
                     .unwrap()
                     .1
@@ -91,7 +91,7 @@ impl Day for Day16 {
         self.input.lines().for_each(|line| {
             let name = line.split(' ').nth(1).unwrap();
             let rate: usize = line.split(&['=', ';']).nth(1).unwrap().parse().unwrap();
-            let connections = if line.find("valves").is_some() {
+            let connections = if line.contains("valves") {
                 line.split_once("valves ")
                     .unwrap()
                     .1
@@ -122,7 +122,7 @@ impl Day for Day16 {
         all_my_valves
             .into_iter()
             .powerset()
-            .filter(|set| set.len() > 0)
+            .filter(|set| !set.is_empty())
             .map(|my_valves| {
                 let elephant_valves = important_valves
                     .iter()
@@ -170,7 +170,7 @@ fn best_gain(distances: &HashMap<&str, HashMap<&str, usize>>, state: State) -> u
                 panic!("missing destination {}", destination)
             }
             let distance = distances[&state.position][*destination];
-            distance + 1 <= state.remaining_time
+            distance < state.remaining_time
         })
         .map(|dest| {
             let dist = distances[&state.position][dest];
@@ -179,7 +179,7 @@ fn best_gain(distances: &HashMap<&str, HashMap<&str, usize>>, state: State) -> u
             let mut remaining_valves = state.remaining_valves.clone();
             remaining_valves.retain(|v| v != dest);
             let new_state = State {
-                position: *dest,
+                position: dest,
                 remaining_valves,
                 remaining_time: state.remaining_time - (dist + 1),
                 released: state.released + state.releases() * (dist + 1),
@@ -206,7 +206,7 @@ fn apsp<'a>(
             let v = main_nodes
                 .iter()
                 .filter(|b| a != *b)
-                .map(|b| (*b, distance(*a, *b, links)))
+                .map(|b| (*b, distance(a, b, links)))
                 .collect();
             (*a, v)
         })
