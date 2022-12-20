@@ -9,7 +9,8 @@ use nom::sequence::{delimited, pair, separated_pair};
 use crate::days::day13::{Packet, Pair, Signal, Value};
 
 pub(super) fn signal(s: &str) -> IResult<&str, Signal> {
-    pair(separated_list0(tag("\n\n"), pairs), eof)(s.trim()).map(|(rem, (pairs, _))| (rem, Signal(pairs)))
+    pair(separated_list0(tag("\n\n"), pairs), eof)(s.trim())
+        .map(|(rem, (pairs, _))| (rem, Signal(pairs)))
 }
 
 fn pairs(s: &str) -> IResult<&str, Pair> {
