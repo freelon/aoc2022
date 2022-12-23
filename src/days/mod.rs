@@ -20,6 +20,7 @@ mod day15;
 mod day16;
 mod day18;
 mod day19;
+mod day20;
 
 type CreateFn = fn(String) -> Box<dyn Day>;
 
@@ -42,6 +43,7 @@ pub const ALL: &[(u8, CreateFn)] = &[
     (16, day16::create),
     (18, day18::create),
     (19, day19::create),
+    (20, day20::create),
 ];
 
 pub fn run(days_to_run: Vec<u8>, collect_timing: bool) {
