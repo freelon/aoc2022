@@ -65,8 +65,6 @@ impl Day for Day23 {
 
             let f1 = target_directions.remove(0);
             target_directions.push(f1);
-
-            print_map(&elves);
         }
 
         let x_min = elves.iter().min_by_key(|elf| elf.0).unwrap().0;
@@ -100,26 +98,28 @@ impl Day for Day23 {
         ];
         for round in 1..(i32::MAX) {
             proposed_moves.clear();
-            elves.iter().for_each(|elf| {
-                let target = Self::target_of(&elves, &target_directions, elf);
-
-                if let Some(p) = target {
-                    *proposed_moves.entry(p).or_insert(0) += 1;
-                }
-            });
-
-            elves = elves
+            let targeted_elves: Vec<_> = elves
                 .iter()
                 .map(|elf| {
                     let target = Self::target_of(&elves, &target_directions, elf);
 
-                    if let Some(target) = target {
-                        if proposed_moves.get(&target).unwrap() == &1 {
-                            return target;
-                        }
+                    if let Some(p) = target {
+                        *proposed_moves.entry(p).or_insert(0) += 1;
+                        (*elf, p)
+                    } else {
+                        (*elf, *elf)
                     }
+                })
+                .collect();
 
-                    *elf
+            elves = targeted_elves
+                .into_iter()
+                .map(|(elf, target)| {
+                    if let Some(1) = proposed_moves.get(&target) {
+                        target
+                    } else {
+                        elf
+                    }
                 })
                 .collect();
 
@@ -131,13 +131,7 @@ impl Day for Day23 {
             target_directions.push(f1);
         }
 
-        let x_min = elves.iter().min_by_key(|elf| elf.0).unwrap().0;
-        let x_max = elves.iter().max_by_key(|elf| elf.0).unwrap().0;
-        let y_min = elves.iter().min_by_key(|elf| elf.1).unwrap().1;
-        let y_max = elves.iter().max_by_key(|elf| elf.1).unwrap().1;
-
-        let number_of_points = (x_max - x_min + 1) * (y_max - y_min + 1);
-        (number_of_points - elves.len() as i32).to_string()
+        unreachable!()
     }
 }
 
