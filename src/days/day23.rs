@@ -14,7 +14,7 @@ struct Day23 {
 }
 
 type P = (i32, i32);
-type EmptyChecker = fn(&HashSet<P>, &P) -> bool;
+type EmptyChecker = fn(&[bool; 8]) -> bool;
 type DirectionProposer = fn(&P) -> P;
 
 impl Day for Day23 {
@@ -158,13 +158,24 @@ impl Day23 {
         target_directions: &[(Box<EmptyChecker>, Box<DirectionProposer>)],
         elf: &P,
     ) -> Option<P> {
-        if target_directions.iter().all(|f| f.deref().0(elves, elf)) {
+        let n = [
+            elves.contains(&(elf.0 - 1, elf.1 - 1)),
+            elves.contains(&(elf.0, elf.1 - 1)),
+            elves.contains(&(elf.0 + 1, elf.1 - 1)),
+            elves.contains(&(elf.0 - 1, elf.1)),
+            elves.contains(&(elf.0 + 1, elf.1)),
+            elves.contains(&(elf.0 - 1, elf.1 + 1)),
+            elves.contains(&(elf.0, elf.1 + 1)),
+            elves.contains(&(elf.0 + 1, elf.1 + 1)),
+        ];
+
+        if !n.iter().any(|v| *v) {
             return None;
         }
 
         let target = target_directions
             .iter()
-            .find(|f| f.deref().0(elves, elf))
+            .find(|f| f.deref().0(&n))
             .map(|f| f.deref().1(elf));
         target
     }
@@ -186,28 +197,20 @@ fn east(p: &P) -> P {
     (p.0 + 1, p.1)
 }
 
-fn north_empty(map: &HashSet<P>, p: &P) -> bool {
-    !(map.contains(&(p.0 - 1, p.1 - 1))
-        || map.contains(&(p.0, p.1 - 1))
-        || map.contains(&(p.0 + 1, p.1 - 1)))
+fn north_empty(map: &[bool; 8]) -> bool {
+    !(map[0] || map[1] || map[2])
 }
 
-fn south_empty(map: &HashSet<P>, p: &P) -> bool {
-    !(map.contains(&(p.0 - 1, p.1 + 1))
-        || map.contains(&(p.0, p.1 + 1))
-        || map.contains(&(p.0 + 1, p.1 + 1)))
+fn south_empty(map: &[bool; 8]) -> bool {
+    !(map[5] || map[6] || map[7])
 }
 
-fn west_empty(map: &HashSet<P>, p: &P) -> bool {
-    !(map.contains(&(p.0 - 1, p.1 - 1))
-        || map.contains(&(p.0 - 1, p.1))
-        || map.contains(&(p.0 - 1, p.1 + 1)))
+fn west_empty(map: &[bool; 8]) -> bool {
+    !(map[0] || map[3] || map[5])
 }
 
-fn east_empty(map: &HashSet<P>, p: &P) -> bool {
-    !(map.contains(&(p.0 + 1, p.1 - 1))
-        || map.contains(&(p.0 + 1, p.1))
-        || map.contains(&(p.0 + 1, p.1 + 1)))
+fn east_empty(map: &[bool; 8]) -> bool {
+    !(map[2] || map[4] || map[7])
 }
 
 #[cfg(test)]
