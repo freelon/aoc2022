@@ -14,6 +14,8 @@ struct Day23 {
 }
 
 type P = (i32, i32);
+type EmptyChecker = fn(&HashSet<P>, &P) -> bool;
+type DirectionProposer = fn(&P) -> P;
 
 impl Day for Day23 {
     fn part1(&self) -> String {
@@ -30,7 +32,7 @@ impl Day for Day23 {
             .collect();
 
         let mut proposed_moves: FxHashMap<P, usize> = FxHashMap::default();
-        let mut target_directions: Vec<(Box<fn(&HashSet<P>, &P) -> bool>, Box<fn(&P) -> P>)> = vec![
+        let mut target_directions: Vec<(Box<EmptyChecker>, Box<DirectionProposer>)> = vec![
             (Box::new(north_empty), Box::new(north)),
             (Box::new(south_empty), Box::new(south)),
             (Box::new(west_empty), Box::new(west)),
@@ -49,7 +51,7 @@ impl Day for Day23 {
             elves = elves
                 .iter()
                 .map(|elf| {
-                    let target = Self::target_of(&elves, &target_directions, &elf);
+                    let target = Self::target_of(&elves, &target_directions, elf);
 
                     if let Some(target) = target {
                         if proposed_moves.get(&target).unwrap() == &1 {
@@ -90,7 +92,7 @@ impl Day for Day23 {
             .collect();
 
         let mut proposed_moves: FxHashMap<P, usize> = FxHashMap::default();
-        let mut target_directions: Vec<(Box<fn(&HashSet<P>, &P) -> bool>, Box<fn(&P) -> P>)> = vec![
+        let mut target_directions: Vec<(Box<EmptyChecker>, Box<DirectionProposer>)> = vec![
             (Box::new(north_empty), Box::new(north)),
             (Box::new(south_empty), Box::new(south)),
             (Box::new(west_empty), Box::new(west)),
@@ -109,7 +111,7 @@ impl Day for Day23 {
             elves = elves
                 .iter()
                 .map(|elf| {
-                    let target = Self::target_of(&elves, &target_directions, &elf);
+                    let target = Self::target_of(&elves, &target_directions, elf);
 
                     if let Some(target) = target {
                         if proposed_moves.get(&target).unwrap() == &1 {
@@ -159,7 +161,7 @@ fn print_map(elves: &HashSet<P>) {
 impl Day23 {
     fn target_of(
         elves: &HashSet<P>,
-        target_directions: &Vec<(Box<fn(&HashSet<P>, &P) -> bool>, Box<fn(&P) -> P>)>,
+        target_directions: &[(Box<EmptyChecker>, Box<DirectionProposer>)],
         elf: &P,
     ) -> Option<P> {
         if target_directions.iter().all(|f| f.deref().0(elves, elf)) {
@@ -168,7 +170,7 @@ impl Day23 {
 
         let target = target_directions
             .iter()
-            .find(|f| f.deref().0(&elves, elf))
+            .find(|f| f.deref().0(elves, elf))
             .map(|f| f.deref().1(elf));
         target
     }
