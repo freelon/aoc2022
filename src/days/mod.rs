@@ -22,6 +22,7 @@ mod day18;
 mod day19;
 mod day20;
 mod day21;
+mod day22;
 mod day23;
 
 type CreateFn = fn(String) -> Box<dyn Day>;
@@ -47,6 +48,7 @@ pub const ALL: &[(u8, CreateFn)] = &[
     (19, day19::create),
     (20, day20::create),
     (21, day21::create),
+    (22, day22::create),
     (23, day23::create),
 ];
 
