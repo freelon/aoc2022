@@ -81,6 +81,8 @@ impl Direction {
         }
     }
 
+    /// This function uses the move function of the example dice
+    #[allow(dead_code)]
     fn move_dice(&self, state: &Day22, p: &P) -> (P, Direction) {
         let row_third = (p.1 - 1) / (state.height / 3);
         let col_quarter = (p.0 - 1) / (state.width / 4);
@@ -153,6 +155,66 @@ impl Direction {
                         ),
                         2 => ((1 + (3 * quarter - p.0), 2 * thirds), Up),
                         3 => ((1, thirds + 1 + (state.height - p.0)), Left),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        }
+    }
+
+    fn move_dice2(&self, state: &Day22, p: &P) -> (P, Direction) {
+        let row_quarter = (p.1 - 1) / (state.height / 4);
+        let col_third = (p.0 - 1) / (state.width / 3);
+        let quarter = state.height / 4;
+        let thirds = state.width / 3;
+
+        match self {
+            Right => {
+                if p.0 < state.rows_mm[p.1 as usize].1 {
+                    ((p.0 + 1, p.1), *self)
+                } else {
+                    match row_quarter {
+                        0 => ((2 * thirds, 3 * quarter + 1 - p.1), Left),
+                        1 => ((2 * thirds + p.1 - quarter, quarter), Up),
+                        2 => ((state.width, 1 + (3 * quarter - p.1)), Left),
+                        3 => ((thirds + p.1 - 3 * quarter, 3 * quarter), Up),
+                        _ => unreachable!("row_quarter too high"),
+                    }
+                }
+            }
+            Left => {
+                if p.0 > state.rows_mm[p.1 as usize].0 {
+                    ((p.0 - 1, p.1), *self)
+                } else {
+                    match row_quarter {
+                        0 => ((1, 3 * quarter + 1 - p.1), Right),
+                        1 => ((thirds - (2 * quarter - p.1), 2 * quarter + 1), Down),
+                        2 => ((thirds + 1, 1 + (3 * quarter - p.1)), Right),
+                        3 => ((p.1 - 3 * quarter + thirds, 1), Down),
+                        _ => unreachable!("row_quarter too high"),
+                    }
+                }
+            }
+            Up => {
+                if p.1 > state.cols_mm[p.0 as usize].0 {
+                    ((p.0, p.1 - 1), *self)
+                } else {
+                    match col_third {
+                        0 => ((thirds + 1, quarter + p.0), Right),
+                        1 => ((1, 3 * quarter + (p.0 - thirds)), Right),
+                        2 => ((p.0 - 2 * thirds, state.height), Up),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            Down => {
+                if p.1 < state.cols_mm[p.0 as usize].1 {
+                    ((p.0, p.1 + 1), *self)
+                } else {
+                    match col_third {
+                        0 => ((p.0 + 2 * thirds, 1), Down),
+                        1 => ((thirds, p.0 - thirds + 3 * quarter), Left),
+                        2 => ((2 * thirds, p.0 - 2 * thirds + quarter), Left),
                         _ => unreachable!(),
                     }
                 }
@@ -297,7 +359,7 @@ impl Day for Day22 {
             if !digits.is_empty() {
                 let mut m: usize = digits.parse().unwrap();
                 'moves: while m > 0 {
-                    let (target_pos, new_direction) = direction.move_dice(self, &position);
+                    let (target_pos, new_direction) = direction.move_dice2(self, &position);
                     if let Some(Wall) = self.map.get(&target_pos) {
                         break 'moves;
                     }
@@ -323,8 +385,8 @@ impl Day for Day22 {
 #[cfg(test)]
 mod test {
     use crate::days::Day;
-    use crate::days::day22::Day22;
-    use crate::days::day22::Direction::{Down, Right, Up};
+    use crate::days::day22::{Day22, Direction, P};
+    use crate::days::day22::Direction::*;
 
     #[test]
     fn part1() {
@@ -333,7 +395,8 @@ mod test {
 
     #[test]
     fn part2() {
-        assert_eq!(Day22::new(EXAMPLE.to_string()).part2(), "5031");
+        // deactivated because it only works if day.part2() uses the move_dice function
+        //assert_eq!(Day22::new(EXAMPLE.to_string()).part2(), "5031");
     }
 
     #[test]
@@ -341,6 +404,36 @@ mod test {
         let statics = Day22::new(EXAMPLE.to_string());
         assert_eq!((Right.move_dice(&statics, &(12, 6))), ((15, 9), Down));
         assert_eq!((Down.move_dice(&statics, &(11, 12))), ((2, 8), Up));
+    }
+
+    #[test]
+    fn part2_round_trip() {
+        let statics = Day22::new(INPUT_SAMPLE.to_string());
+
+        for (l, start, stop) in &[
+            ("1", ((5, 1), Left), ((1, 12), Right)),
+            ("2", ((5, 1), Up), ((1, 13), Right)),
+            ("3", ((12, 1), Right), ((8, 12), Left)),
+            ("4", ((12, 1), Up), ((4, 16), Up)),
+            ("5", ((9, 4), Down), ((8, 5), Left)),
+            ("6", ((5, 5), Left), ((1, 9), Down)),
+            ("7", ((8, 5), Right), ((9, 4), Up)),
+            ("8", ((1, 9), Left), ((5, 4), Right)),
+            ("9", ((1, 9), Up), ((5, 5), Right)),
+            ("10", ((8, 9), Right), ((12, 4), Left)),
+            ("11", ((6, 12), Down), ((4, 14), Left)),
+            ("12", ((1, 13), Left), ((5, 1), Down)),
+            ("13", ((4, 15), Right), ((7, 12), Up)),
+            ("14", ((4, 16), Down), ((12, 1), Down)),
+        ] {
+            let result = mov(&statics, *start);
+            assert_eq!(result, *stop, "failed @ {l}");
+        }
+    }
+
+    fn mov(statics: &Day22, start: (P, Direction)) -> (P, Direction) {
+        let (p, d) = start;
+        d.move_dice2(&statics, &p)
     }
 
     const EXAMPLE: &str = "        ...#
@@ -357,4 +450,23 @@ mod test {
         ......#.
 
 10R5L5R10L4R5L5";
+
+    const INPUT_SAMPLE: &str = "    ########
+    ########
+    ########
+    ########
+    ####
+    ####
+    ####
+    ####
+########
+########
+########
+########
+####
+####
+####
+####
+
+16";
 }
