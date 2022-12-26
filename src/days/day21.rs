@@ -39,8 +39,8 @@ impl Day for Day21 {
             panic!("fuck^^")
         }
 
-        if left_result.is_none() {
-            solve2(&monkeys, &results, left, right_result.unwrap())
+        if let Some(result) = left_result {
+            solve2(&monkeys, &results, left, result)
         } else {
             solve2(&monkeys, &results, right, left_result.unwrap())
         }

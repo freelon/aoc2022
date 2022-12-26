@@ -104,13 +104,14 @@ impl Day for Day23 {
                     let target = Self::target_of(&elves, &target_directions, elf);
 
                     if let Some(p) = target {
-                        *proposed_moves.entry(p).or_insert(0) += 1;
                         (*elf, p)
                     } else {
                         (*elf, *elf)
                     }
                 })
                 .collect();
+
+            targeted_elves.iter().for_each(|&(_from, to)| *proposed_moves.entry(to).or_insert(0) += 1);
 
             elves = targeted_elves
                 .into_iter()
