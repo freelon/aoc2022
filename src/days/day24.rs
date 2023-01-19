@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use itertools::Itertools;
 
@@ -14,7 +14,7 @@ struct Day24 {
 
 type P = (i32, i32);
 
-type Blizzards = Vec<(P, char)>;
+type Blizzards = HashMap<P, Vec<char>>;
 
 #[derive(Clone, Hash, Eq, PartialEq)]
 struct State {
@@ -35,7 +35,8 @@ fn advance(
 ) -> Blizzards {
     blizzards
         .iter()
-        .map(|&((x, y), c)| match c {
+        .flat_map(|(p, cs)| cs.iter().map(|c| (*p, *c)))
+        .map(|((x, y), c)| match c {
             '<' => {
                 if x == x_wall_left + 1 {
                     ((x_wall_right - 1, y), c)
@@ -66,7 +67,7 @@ fn advance(
             }
             _ => unreachable!("bitch!"),
         })
-        .collect_vec()
+        .into_group_map()
 }
 
 fn valid(
@@ -85,7 +86,7 @@ fn valid(
         return false;
     }
 
-    blizzards.iter().filter(|(p, _c)| *p == e).next().is_none()
+    !blizzards.contains_key(&e)
 }
 
 impl Day for Day24 {
@@ -100,7 +101,7 @@ impl Day for Day24 {
                     .filter(|(_, c)| ['<', '>', 'v', '^'].contains(c))
                     .map(move |(x, c)| ((x as i32, y as i32), c))
             })
-            .collect_vec();
+            .into_group_map();
         let x_wall_left = 0;
         let x_wall_right = (self.input.lines().next().unwrap().len() - 1) as i32;
         let y_wall_top = 0;
