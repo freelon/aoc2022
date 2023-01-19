@@ -160,7 +160,90 @@ impl Day for Day24 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        let start_blizzards = self
+            .input
+            .lines()
+            .enumerate()
+            .flat_map(|(y, row)| {
+                row.chars()
+                    .enumerate()
+                    .filter(|(_, c)| ['<', '>', 'v', '^'].contains(c))
+                    .map(move |(x, c)| ((x as i32, y as i32), c))
+            })
+            .into_group_map();
+        let x_wall_left = 0;
+        let x_wall_right = (self.input.lines().next().unwrap().len() - 1) as i32;
+        let y_wall_top = 0;
+        let y_wall_bottom = (self.input.lines().count() - 1) as i32;
+
+        let goal = (x_wall_right - 1, y_wall_bottom);
+        let start = (1, 0);
+
+        let mut open: VecDeque<(P, usize, u8)> = VecDeque::new();
+        let mut visited: HashSet<(P, usize, u8)> = HashSet::new();
+
+        open.push_back(((1, 0), 0, 0));
+
+        let mut blizzards_at: Vec<Blizzards> = vec![start_blizzards];
+
+        while let Some((e, time, part)) = open.pop_front() {
+            if visited.contains(&(e, time, part)) {
+                continue;
+            }
+
+            if e == goal && part == 2 {
+                return format!("{time}");
+            }
+
+            while blizzards_at.len() < time + 2 {
+                let b = advance(
+                    blizzards_at.last().unwrap(),
+                    x_wall_left,
+                    x_wall_right,
+                    y_wall_top,
+                    y_wall_bottom,
+                );
+                blizzards_at.push(b);
+            }
+
+            let current_blizzards = blizzards_at.get(time + 1).unwrap();
+
+            for delta in &[(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)] {
+                let e = add(delta, &e);
+
+                if valid(
+                    e,
+                    &current_blizzards,
+                    x_wall_left,
+                    x_wall_right,
+                    y_wall_top,
+                    y_wall_bottom,
+                ) {
+                    let new_p = match part {
+                        0 => {
+                            if e == goal {
+                                1
+                            } else {
+                                0
+                            }
+                        }
+                        1 => {
+                            if e == start {
+                                2
+                            } else {
+                                1
+                            }
+                        }
+                        x => x,
+                    };
+                    open.push_back((e, time + 1, new_p));
+                }
+            }
+
+            visited.insert((e, time, part));
+        }
+
+        unreachable!("there was no solution :o")
     }
 }
 
@@ -174,11 +257,12 @@ mod test {
     use crate::days::day24::Day24;
 
     #[test]
-    fn example1_part1() {
+    fn example1() {
         let day = Day24 {
             input: INPUT.to_string(),
         };
         assert_eq!(day.part1(), "18");
+        assert_eq!(day.part2(), "54");
     }
 
     const INPUT: &str = "#.######
