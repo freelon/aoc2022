@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashSet, VecDeque};
 
 use itertools::Itertools;
 
@@ -14,6 +14,8 @@ struct Day24 {
 
 type P = (i32, i32);
 
+type Blizzards = Vec<(P, char)>;
+
 #[derive(Clone, Hash, Eq, PartialEq)]
 struct State {
     e: P,
@@ -24,66 +26,66 @@ struct State {
     y_wall_bottom: i32,
 }
 
-impl State {
-    fn advance(&self) -> Self {
-        let new_blizzards = self
-            .blizzards
-            .iter()
-            .map(|&((x, y), c)| match c {
-                '<' => {
-                    if x == self.x_wall_left + 1 {
-                        ((self.x_wall_right - 1, y), c)
-                    } else {
-                        ((x - 1, y), c)
-                    }
+fn advance(
+    blizzards: &Blizzards,
+    x_wall_left: i32,
+    x_wall_right: i32,
+    y_wall_top: i32,
+    y_wall_bottom: i32,
+) -> Blizzards {
+    blizzards
+        .iter()
+        .map(|&((x, y), c)| match c {
+            '<' => {
+                if x == x_wall_left + 1 {
+                    ((x_wall_right - 1, y), c)
+                } else {
+                    ((x - 1, y), c)
                 }
-                '>' => {
-                    if x == self.x_wall_right - 1 {
-                        ((self.x_wall_left + 1, y), c)
-                    } else {
-                        ((x + 1, y), c)
-                    }
+            }
+            '>' => {
+                if x == x_wall_right - 1 {
+                    ((x_wall_left + 1, y), c)
+                } else {
+                    ((x + 1, y), c)
                 }
-                'v' => {
-                    if y == self.y_wall_bottom - 1 {
-                        ((x, self.y_wall_top + 1), c)
-                    } else {
-                        ((x, y + 1), c)
-                    }
+            }
+            'v' => {
+                if y == y_wall_bottom - 1 {
+                    ((x, y_wall_top + 1), c)
+                } else {
+                    ((x, y + 1), c)
                 }
-                '^' => {
-                    if y == self.y_wall_top + 1 {
-                        ((x, self.y_wall_bottom - 1), c)
-                    } else {
-                        ((x, y - 1), c)
-                    }
+            }
+            '^' => {
+                if y == y_wall_top + 1 {
+                    ((x, y_wall_bottom - 1), c)
+                } else {
+                    ((x, y - 1), c)
                 }
-                _ => unreachable!("bitch!"),
-            })
-            .collect_vec();
+            }
+            _ => unreachable!("bitch!"),
+        })
+        .collect_vec()
+}
 
-        State {
-            blizzards: new_blizzards,
-            ..*self
-        }
+fn valid(
+    e: P,
+    blizzards: &Blizzards,
+    x_wall_left: i32,
+    x_wall_right: i32,
+    y_wall_top: i32,
+    y_wall_bottom: i32,
+) -> bool {
+    if e.0 <= x_wall_left
+        || e.0 >= x_wall_right
+        || (e.1 <= y_wall_top && !(e.0 == 1))
+        || (e.1 >= y_wall_bottom && !(e.0 == x_wall_right - 1))
+    {
+        return false;
     }
 
-    fn valid(&self) -> bool {
-        let e = self.e;
-        if e.0 <= self.x_wall_left
-            || e.0 >= self.x_wall_right
-            || (e.1 <= self.y_wall_top && !(e.0 == 1))
-            || (e.1 >= self.y_wall_bottom && !(e.0 == self.x_wall_right - 1))
-        {
-            return false;
-        }
-
-        self.blizzards
-            .iter()
-            .filter(|(p, _c)| *p == e)
-            .next()
-            .is_none()
-    }
+    blizzards.iter().filter(|(p, _c)| *p == e).next().is_none()
 }
 
 impl Day for Day24 {
@@ -106,41 +108,51 @@ impl Day for Day24 {
 
         let goal = (x_wall_right - 1, y_wall_bottom);
 
-        let start = State {
-            e: (1, 0),
-            blizzards: start_blizzards,
-            x_wall_left,
-            x_wall_right,
-            y_wall_top,
-            y_wall_bottom,
-        };
+        let mut open: VecDeque<(P, usize)> = VecDeque::new();
+        let mut visited: HashSet<(P, usize)> = HashSet::new();
 
-        let mut open: VecDeque<(State, usize)> = VecDeque::new();
-        let mut visited: HashMap<State, usize> = HashMap::new();
+        open.push_back(((1, 0), 0));
 
-        open.push_back((start, 0));
+        let mut blizzards_at: Vec<Blizzards> = vec![start_blizzards];
 
-        while let Some((state, time)) = open.pop_front() {
-            //println!("inspecting position {:?} at time {time}", state.e);
-            if visited.contains_key(&state) {
+        while let Some((e, time)) = open.pop_front() {
+            if visited.contains(&(e, time)) {
                 continue;
             }
 
-            if state.e == goal {
+            if e == goal {
                 return format!("{time}");
             }
 
-            for delta in &[(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)] {
-                let mut next = state.advance();
-                let e = add(delta, &next.e);
-                next.e = e;
+            while blizzards_at.len() < time + 2 {
+                let b = advance(
+                    blizzards_at.last().unwrap(),
+                    x_wall_left,
+                    x_wall_right,
+                    y_wall_top,
+                    y_wall_bottom,
+                );
+                blizzards_at.push(b);
+            }
 
-                if next.valid() {
-                    open.push_back((next, time + 1));
+            let current_blizzards = blizzards_at.get(time + 1).unwrap();
+
+            for delta in &[(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)] {
+                let e = add(delta, &e);
+
+                if valid(
+                    e,
+                    &current_blizzards,
+                    x_wall_left,
+                    x_wall_right,
+                    y_wall_top,
+                    y_wall_bottom,
+                ) {
+                    open.push_back((e, time + 1));
                 }
             }
 
-            visited.insert(state, time);
+            visited.insert((e, time));
         }
 
         unreachable!("there was no solution :o")
