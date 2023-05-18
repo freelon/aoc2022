@@ -18,6 +18,7 @@ mod day13;
 mod day14;
 mod day15;
 mod day16;
+mod day17;
 mod day18;
 mod day19;
 mod day20;
@@ -46,6 +47,7 @@ pub const ALL: &[(u8, CreateFn)] = &[
     (14, day14::create),
     (15, day15::create),
     (16, day16::create),
+    (17, day17::create),
     (18, day18::create),
     (19, day19::create),
     (20, day20::create),

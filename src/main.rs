@@ -2,10 +2,10 @@ extern crate core;
 
 use std::process::exit;
 
-use chrono::{Datelike, DateTime, Local};
+use chrono::{DateTime, Datelike, Local};
 use clap::Parser;
 
-use crate::days::{ALL, run};
+use crate::days::{run, ALL};
 use crate::inputs::ensure_input_exists;
 
 mod days;
