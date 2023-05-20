@@ -30,7 +30,7 @@ fn load_external(day: u8) -> String {
 
     let client = Client::new();
     let res = client
-        .get(&format!(
+        .get(format!(
             "https://adventofcode.com/{}/day/{}/input",
             YEAR, day
         ))

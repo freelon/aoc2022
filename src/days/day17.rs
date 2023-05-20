@@ -20,7 +20,7 @@ impl Day17 {
         let mut next_stones = STONES
             .iter()
             .enumerate()
-            .map(|(i, stone_str)| (i, to_stone_matrix(&stone_str)))
+            .map(|(i, stone_str)| (i, to_stone_matrix(stone_str)))
             .cycle();
         let mut next_wind = self.input.trim().chars().cycle();
         let mut rows: VecDeque<Row> = VecDeque::with_capacity(100);
@@ -34,7 +34,7 @@ impl Day17 {
             //         println!("new stone: {stone:?}");
             let state = (
                 stone_number,
-                rows.iter().rev().take(30).map(|x| x.clone()).collect_vec(),
+                rows.iter().rev().take(30).copied().collect_vec(),
                 next_wind.clone().take(self.input.len()).collect_vec(),
             );
             run_number += 1;

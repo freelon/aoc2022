@@ -27,7 +27,7 @@ impl Day for Day25 {
     }
 
     fn part2(&self) -> String {
-        format!("")
+        String::new()
     }
 }
 

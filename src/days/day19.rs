@@ -19,7 +19,7 @@ impl Day for Day19 {
 
         factories
             .par_iter()
-            .map(|factory| factory.0 as i32 * score(*factory, 24) as i32)
+            .map(|factory| factory.0 * score(*factory, 24))
             .sum::<i32>()
             .to_string()
     }
@@ -31,7 +31,7 @@ impl Day for Day19 {
         factories
             .par_iter()
             .take(3)
-            .map(|factory| score(*factory, 32) as i32)
+            .map(|factory| score(*factory, 32))
             .product::<i32>()
             .to_string()
     }

@@ -433,7 +433,7 @@ mod test {
 
     fn mov(statics: &Day22, start: (P, Direction)) -> (P, Direction) {
         let (p, d) = start;
-        d.move_dice2(&statics, &p)
+        d.move_dice2(statics, &p)
     }
 
     const EXAMPLE: &str = "        ...#

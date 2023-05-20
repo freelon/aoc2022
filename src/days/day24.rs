@@ -80,8 +80,8 @@ fn valid(
 ) -> bool {
     if e.0 <= x_wall_left
         || e.0 >= x_wall_right
-        || (e.1 <= y_wall_top && !(e.0 == 1))
-        || (e.1 >= y_wall_bottom && !(e.0 == x_wall_right - 1))
+        || (e.1 <= y_wall_top && e.0 != 1)
+        || (e.1 >= y_wall_bottom && e.0 != x_wall_right - 1)
     {
         return false;
     }
@@ -143,7 +143,7 @@ impl Day for Day24 {
 
                 if valid(
                     e,
-                    &current_blizzards,
+                    current_blizzards,
                     x_wall_left,
                     x_wall_right,
                     y_wall_top,
@@ -213,7 +213,7 @@ impl Day for Day24 {
 
                 if valid(
                     e,
-                    &current_blizzards,
+                    current_blizzards,
                     x_wall_left,
                     x_wall_right,
                     y_wall_top,
