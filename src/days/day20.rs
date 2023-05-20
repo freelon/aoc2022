@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-
-use itertools::Itertools;
+use std::collections::VecDeque;
 
 use crate::days::Day;
 
@@ -14,54 +12,35 @@ struct Day20 {
 
 impl Day for Day20 {
     fn part1(&self) -> String {
-        let mut v = self
+        let mut v: VecDeque<(usize, i32)> = self
             .input
             .lines()
-            .map(|line| (false, line.parse::<i32>().unwrap()))
-            .collect_vec();
+            .enumerate()
+            .map(|(i, s)| (i, s.parse::<i32>().unwrap()))
+            .collect();
 
-        let set: HashSet<i32> = v.iter().map(|x| x.1).collect();
-
-        assert_eq!(v.len(), set.len());
-
-        let l = v.len();
-
-        let mut moved_count = 0;
-        let mut index = 0;
-        while moved_count < l {
-            println!("{:?}", v);
-            let (_, i) = v.remove(index);
-            let mut new_index = (index as i32 + i).rem_euclid(l as i32) as usize;
-            if new_index < index {
-                new_index += 1;
-                index = (index + 1) % l;
+        for order in 0..v.len() {
+            while v.front().unwrap().0 != order {
+                v.rotate_left(1);
             }
-            v.insert(new_index, (true, i));
-            moved_count += 1;
-            while v[index].0 == false {
-                index = (index + 1) % l;
+            // println!("pulled {order} to front: {v:?}");
+            let (index, value) = v.pop_front().unwrap();
+            if value >= 0 {
+                v.rotate_left(value as usize % v.len());
+            } else {
+                v.rotate_right((-value) as usize % v.len());
             }
+            v.push_front((index, value));
+            // println!("                   {v:?}");
         }
 
-        println!("{:?}", v);
+        while v.front().unwrap().1 != 0 {
+            v.rotate_left(1);
+        }
 
-        let index_0 = v.iter().find_position(|(_, v)| *v == 0).unwrap().0;
-        let i1 = (index_0 + 1000) % l;
-        let i2 = (index_0 + 2000) % l;
-        let i3 = (index_0 + 3000) % l;
-
-        dbg!(index_0);
-        dbg!(i1);
-        dbg!(i2);
-        dbg!(i3);
-
-        let v1 = v[i1].1;
-        let v2 = v[i2].1;
-        let v3 = v[i3].1;
-
-        dbg!(v1);
-        dbg!(v2);
-        dbg!(v3);
+        let v1 = v.get(1000 % v.len()).unwrap().1;
+        let v2 = v.get(2000 % v.len()).unwrap().1;
+        let v3 = v.get(3000 % v.len()).unwrap().1;
 
         (v1 + v2 + v3).to_string()
     }
@@ -73,8 +52,8 @@ impl Day for Day20 {
 
 #[cfg(test)]
 mod test {
-    use crate::days::Day;
     use crate::days::day20::Day20;
+    use crate::days::Day;
 
     #[test]
     fn part1() {
@@ -82,7 +61,7 @@ mod test {
             Day20 {
                 input: INPUT.to_string()
             }
-                .part1(),
+            .part1(),
             "3"
         );
     }
